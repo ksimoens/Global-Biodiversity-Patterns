@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import random
+import time
 
 from parameters import*
 from Local import*
@@ -19,6 +21,7 @@ class Grid():
 
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
+		self.MaxSpec = 0
 
 	def fillGrid(self,Nspec):
 		
@@ -26,7 +29,8 @@ class Grid():
 			loc.fillLocal(Nspec)
 		self.Nspec = Nspec
 		self.species = np.arange(0,Nspec)
-
+		self.MaxSpec = np.max(self.species)
+		
 	def printGrid(self):
 
 		lon_list = np.zeros(len(self.global_grid))
@@ -156,11 +160,49 @@ class Grid():
 				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
 				print(index+Nlon-1)
 			
-			
 	#	else: nothing
 			# - - -
 			# - o -
 			# _ _ _
+
+		return(neighbours)
+
+	def selectCell(self):
+
+		i = random.randint(0,len(self.global_grid)-1)
+		return(i)
+
+	def turnover(self):
+
+		i = self.selectCell()
+		print("index " + str(i))
+
+		r = random.uniform(0,1)
+		disp_pool = np.array([])
+		print("rdisp " + str(r))
+
+		if(r < Pdisp):
+			disp_pool = self.getNeighbours(i)
+		else:
+			disp_pool = self.global_grid[i].populations
+		print("disp_pool " + str(disp_pool))
+
+		old = random.randint(0,len(self.global_grid[i].populations)-1)
+		print("old " + str(old))
+
+		s = random.uniform(0,1)
+		print("sspec " + str(s))
+
+		print("old pop " + str(self.global_grid[i].populations))
+		if(r < Pdisp and s < Pspec):
+			self.global_grid[i].populations[old] = self.MaxSpec + 1
+			self.MaxSpec += 1
+		else:
+			new = random.randint(0,len(disp_pool)-1)
+			print("new " + str(disp_pool[new]))
+			self.global_grid[i].populations[old] = disp_pool[new]
+
+		print("new pop " + str(self.global_grid[i].populations))
 
 
 
@@ -169,6 +211,10 @@ class Grid():
 
 g = Grid()
 g.fillGrid(5)
-#g.printGrid()
-g.getNeighbours(584)
+t1 = time.time()
+for j in range(0,1000):
+	g.turnover()
+t2 = time.time()
+
+print(t2-t1)
 

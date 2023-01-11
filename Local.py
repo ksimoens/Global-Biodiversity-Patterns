@@ -14,5 +14,5 @@ class Local():
 	def fillLocal(self,Nspec):
 
 		for i in range(0,len(self.populations)):
-			self.populations[i] = int(random.randint(0,Nspec))
+			self.populations[i] = random.randint(0,Nspec-1)
 
