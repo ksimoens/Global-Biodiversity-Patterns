@@ -4,5 +4,5 @@ Nlat = 14
 
 Nloc = 16
 
-Pdisp = 0.01
-Pspec = 1e-4
+Pdisp = 0.1
+Pspec = 0.01

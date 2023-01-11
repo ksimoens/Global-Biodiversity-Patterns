@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import random
 import time
+import os
+import shutil
 
 from parameters import*
 from Local import*
@@ -46,7 +48,7 @@ class Grid():
 		self.Nspec = len(self.species)
 		print(self.species)
 
-	def printGrid(self):
+	def printGrid(self,step):
 
 		lon_list = np.zeros(len(self.global_grid))
 		lat_list = np.zeros(len(self.global_grid))
@@ -63,10 +65,10 @@ class Grid():
 
 		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
 		darray = np.concatenate( (darray,spec_list) ,axis=1)
-		names_out = ['lon','lat'] + ['spec_' + str(ID) for ID in self.species] 		
+		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in self.species] 		
 		df_out = pd.DataFrame(data=darray, columns=names_out)
 		
-		df_out.to_csv('grid.csv')
+		df_out.to_csv('Output/grid_' + str(int(step)).zfill(4) + '.csv')
 
 	def getNeighbours(self,index):
 
@@ -78,26 +80,22 @@ class Grid():
 		# | - - . - - |
 		if((index+1) % Nlon == 0):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
-			print(index-Nlon+1)
 		# - - -
 		# - o x
 		# - - -
 		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
-			print(index+1)
 		# 2
 		# | - - . - - |
 		# | o - . - x |
 		# | - - . - - |
 		if((index) % Nlon == 0):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
-			print(index+Nlon-1)
 		# - - -
 		# x o -
 		# - - -
 		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-			print(index-1)
 
 		if(index >= Nlon):
 			# 3
@@ -105,7 +103,6 @@ class Grid():
 			# - o -
 			# - - -
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon].populations))
-			print(index-Nlon)
 			
 			# 4
 			# | x - . - - |
@@ -113,13 +110,11 @@ class Grid():
 			# | - - . - - |
 			if((index+1) % Nlon == 0):
 				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-Nlon+1].populations))
-				print(index-Nlon-Nlon+1)
 			# - - x
 			# - o -
 			# - - -
 			else:
 				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
-				print(index-Nlon+1)
 
 			# 5
 			# | - - . - x |
@@ -127,13 +122,11 @@ class Grid():
 			# | - - . - - |
 			if((index) % 45 == 0):
 				neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-				print(index-1)
 			# x - -
 			# - o -
 			# - - -
 			else:
 				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
-				print(index-Nlon-1)
 	#	else: nothing
 			# _ _ _
 			# - o -
@@ -145,7 +138,6 @@ class Grid():
 			# - o -
 			# - x -
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon].populations))
-			print(index+Nlon)
 
 			# 7
 			# | - - . - - |
@@ -153,13 +145,11 @@ class Grid():
 			# | x - . - - |
 			if((index+1) % Nlon == 0):
 				neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
-				print(index+1)
 			# - - -
 			# - o -
 			# - - x
 			else:
 				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
-				print(index+Nlon+1)
 
 			# 8
 			# | - - . - - |
@@ -167,13 +157,11 @@ class Grid():
 			# | - - . - x |
 			if((index) % 45 == 0):
 				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+Nlon-1].populations))
-				print(index+Nlon+Nlon-1)
 			# - - - 
 			# - o -
 			# x - -
 			else:
 				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
-				print(index+Nlon-1)
 			
 	#	else: nothing
 			# - - -
@@ -190,41 +178,51 @@ class Grid():
 	def turnover(self):
 
 		i = self.selectCell()
-		print("index " + str(i))
 
 		r = random.uniform(0,1)
 		disp_pool = np.array([])
-		print("rdisp " + str(r))
 
 		if(r < Pdisp):
 			disp_pool = self.getNeighbours(i)
+			print('dispersal')
 		else:
 			disp_pool = self.global_grid[i].populations
-		print("disp_pool " + str(disp_pool))
+			print('local')
 
 		old = random.randint(0,len(self.global_grid[i].populations)-1)
-		print("old " + str(old))
 
 		s = random.uniform(0,1)
-		print("sspec " + str(s))
 
-		print("old pop " + str(self.global_grid[i].populations))
 		if(r < Pdisp and s < Pspec):
 			self.global_grid[i].populations[old] = self.MaxSpec + 1
 			self.MaxSpec += 1
+			print('speciation')
 		else:
 			new = random.randint(0,len(disp_pool)-1)
-			print("new " + str(disp_pool[new]))
 			self.global_grid[i].populations[old] = disp_pool[new]
-
-		print("new pop " + str(self.global_grid[i].populations))
 
 
 
 	
-
+if(os.path.exists("Output")):
+	shutil.rmtree("Output")
+os.mkdir("Output")
 
 g = Grid()
 g.fillGrid(5)
-g.updateSpecies()
+g.printGrid(0)
+
+t1 = time.time()
+for i in range(0,50000001):
+	print(i)
+	g.turnover()
+
+	if(i%50000==0):
+		g.updateSpecies()
+		g.printGrid(i/50000)
+t2 = time.time()
+print(t2-t1)
+
+
+
 
