@@ -30,7 +30,22 @@ class Grid():
 		self.Nspec = Nspec
 		self.species = np.arange(0,Nspec)
 		self.MaxSpec = np.max(self.species)
-		
+
+	def updateSpecies(self):
+
+		pop_list = np.array([])
+		for cell in self.global_grid:
+			pop_list = np.concatenate((pop_list,cell.populations))
+
+		self.species = np.array([])
+		for i in range(0,self.MaxSpec+1):
+			n = np.count_nonzero(pop_list == i)
+			if(n != 0):
+				self.species = np.append(self.species,i)
+
+		self.Nspec = len(self.species)
+		print(self.species)
+
 	def printGrid(self):
 
 		lon_list = np.zeros(len(self.global_grid))
@@ -211,10 +226,5 @@ class Grid():
 
 g = Grid()
 g.fillGrid(5)
-t1 = time.time()
-for j in range(0,1000):
-	g.turnover()
-t2 = time.time()
-
-print(t2-t1)
+g.updateSpecies()
 
