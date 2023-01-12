@@ -193,7 +193,7 @@ class Grid():
 
 		s = random.uniform(0,1)
 
-		if(r < Pdisp and s < Pspec):
+		if(s < Pspec):
 			self.global_grid[i].populations[old] = self.MaxSpec + 1
 			self.MaxSpec += 1
 			print('speciation')
