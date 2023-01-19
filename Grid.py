@@ -209,7 +209,7 @@ if(os.path.exists("Output")):
 os.mkdir("Output")
 
 g = Grid()
-g.fillGrid(5)
+g.fillGrid(1)
 g.printGrid(0)
 
 t1 = time.time()
