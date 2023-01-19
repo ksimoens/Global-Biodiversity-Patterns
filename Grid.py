@@ -55,9 +55,12 @@ class Grid():
 
 		spec_list = np.zeros( (len(self.global_grid),self.Nspec) )
 
+		lon = np.array([-1,0,1,-1,0,1,-1,0,1])
+		lat = np.array([1,1,1,0,0,0,-1,-1,-1])
+
 		for i in range(0,len(lat_list)):
-			lon_list[i] = self.global_grid[i].lon
-			lat_list[i] = self.global_grid[i].lat
+			lon_list[i] = lon[i]
+			lat_list[i] = lat[i]
 
 			for j in range(0,self.Nspec):
 				spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j])
@@ -209,17 +212,18 @@ if(os.path.exists("Output")):
 os.mkdir("Output")
 
 g = Grid()
-g.fillGrid(5)
+g.fillGrid(1)
 g.printGrid(0)
 
+
 t1 = time.time()
-for i in range(0,50000001):
+for i in range(0,100001):
 	print(i)
 	g.turnover()
 
-	if(i%50000==0):
+	if(i%100==0):
 		g.updateSpecies()
-		g.printGrid(i/50000)
+		g.printGrid(i/100)
 t2 = time.time()
 print(t2-t1)
 
