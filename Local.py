@@ -2,17 +2,18 @@ import numpy as np
 import random
 
 from parameters import*
+from Population import*
 
 class Local():
 
 	def __init__(self,lon,lat,i):
-		self.populations = np.zeros(Nloc)
+		self.populations = []
 		self.lon = lon
 		self.lat = lat
 		self.index = i
 
-	def fillLocal(self,Nspec):
+	def fillLocal(self,N):
 
-		for i in range(0,len(self.populations)):
-			self.populations[i] = random.randint(0,Nspec-1)
+		for i in range(0,N):
+			self.populations.append(Population(self.index,i))
 

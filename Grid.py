@@ -18,20 +18,20 @@ class Grid():
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
-				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,2],k+1) )
+				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,2],k) )
 				k += 1
 
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
 
-	def fillGrid(self,Nspec):
+	def fillGrid(self):
 		
 		for loc in self.global_grid:
-			loc.fillLocal(Nspec)
-		self.Nspec = Nspec
-		self.species = np.arange(0,Nspec)
-		self.MaxSpec = np.max(self.species)
+			loc.fillLocal(Nloc)
+		#self.Nspec = Nspec
+		#self.species = np.arange(0,Nspec)
+		#self.MaxSpec = np.max(self.species)
 
 	def updateSpecies(self):
 
@@ -205,7 +205,7 @@ class Grid():
 			self.global_grid[i].populations[old] = disp_pool[new]
 
 
-
+'''
 	
 if(os.path.exists("Output")):
 	shutil.rmtree("Output")
@@ -227,6 +227,6 @@ for i in range(0,100001):
 t2 = time.time()
 print(t2-t1)
 
-
+'''
 
 
