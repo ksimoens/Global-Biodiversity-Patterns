@@ -1,8 +1,8 @@
 
-Nlon = 3
-Nlat = 3
+Nlon = 45
+Nlat = 14
 
-Nloc = 3
+Nloc = 16
 
 Pdisp = 0.1
-Pspec = 0.075
+Pspec = 0.01

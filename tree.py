@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import random
 import copy
+import time
 
 g = Grid()
 g.fillGrid()
@@ -33,6 +34,8 @@ IDlist['species'] = -1
 print(IDlist)
 
 count = 0
+
+t1 = time.time()
 
 while(len(tree) > 1):
 
@@ -98,8 +101,36 @@ for i in range(0,len(g.global_grid)):
 		g.global_grid[i].populations[j].species = IDlist['species'][c]
 		c += 1
 
-for i in range(0,len(g.global_grid)):
-	for j in range(0,len(g.global_grid[i].populations)):
-		print(str(i) + "\t" + str(j) + "\t" +  str(g.global_grid[i].populations[j].species))
+lon_list = np.zeros(len(g.global_grid))
+lat_list = np.zeros(len(g.global_grid))
+
+spec_array = np.zeros( (len(g.global_grid),len(spec_list)) )
+
+for i in range(0,len(lat_list)):
+	lon_list[i] = g.global_grid[i].lon
+	lat_list[i] = g.global_grid[i].lat
+
+	for j in range(0,len(spec_list)):
+		n = 0
+		for x in range(0,len(g.global_grid[i].populations)):
+			if(g.global_grid[i].populations[x].species == spec_list[j].order):
+				n += 1	
+		spec_array[i][j] = n
+
+ID_list = np.zeros(len(spec_list))
+for i in range(0,len(ID_list)):
+	ID_list[i] = spec_list[i].order
+
+
+darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
+darray = np.concatenate( (darray,spec_array) ,axis=1)
+names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list] 		
+df_out = pd.DataFrame(data=darray, columns=names_out)
+		
+df_out.to_csv('grid_' + str(int(0)).zfill(4) + '.csv')
+
+t2 = time.time()
+
+print(t2 - t1)
 		
 
