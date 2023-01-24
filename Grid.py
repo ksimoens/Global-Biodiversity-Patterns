@@ -24,6 +24,12 @@ class Grid():
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
+		self.probabilities = np.zeros((len(self.global_grid),2))
+		for i in range(0,len(self.probabilities)):
+			T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
+			self.probabilities[i][1] = np.exp(-0.65 / 8.617e-5 / T)
+		self.probabilities = self.probabilities / np.sum(self.probabilities,axis=0)[1]		
+
 
 	def fillGrid(self,Nspec):
 		
@@ -172,8 +178,14 @@ class Grid():
 
 	def selectCell(self):
 
-		i = random.randint(0,len(self.global_grid)-1)
-		return(i)
+		r = random.uniform(0,1)
+		s = 0
+		for i in range(0,len(self.probabilities)):
+			s += self.probabilities[i][1]
+			if(s > r):
+				index = i
+				break
+		return(index)
 
 	def turnover(self):
 
@@ -213,13 +225,13 @@ g.fillGrid(1)
 g.printGrid(0)
 
 t1 = time.time()
-for i in range(0,50000001):
+for i in range(0,5000001):
 	print(i)
 	g.turnover()
 
-	if(i%50000==0):
+	if(i%5000==0):
 		g.updateSpecies()
-		g.printGrid(i/50000)
+		g.printGrid(i/5000)
 t2 = time.time()
 print(t2-t1)
 
