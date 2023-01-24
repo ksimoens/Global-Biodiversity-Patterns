@@ -142,6 +142,8 @@ p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
 
 }
 
+if(T){
+
 dat <- read.csv('grid_0000.csv',header=T,row.names=1) 
 
 dat_spec <- dat %>% select(-c(1,2))
@@ -153,8 +155,10 @@ PCA <- rda(dat_spec.h)
 site.scores <- scores(PCA, scaling=1, display="sites")
 df_plot <- site.scores %>% as.data.frame() %>% mutate(lat = dat %>% pull(lat) %>% abs())
 
-p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('PC1 (2.64 %)') + ylab('PC2 (2.54 %)') + 
+p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('PC1 (2.37 %)') + ylab('PC2 (2.12 %)') + 
 				theme_bw() + scale_colour_viridis_c(option='magma',name='latitude') + 
 				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
 
 p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
+
+}

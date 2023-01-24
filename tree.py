@@ -21,14 +21,21 @@ spec_list = []
 
 glob_index = []
 loc_index = []
+prob_list = []
 
 for i in range(0,len(g.global_grid)):
 	for j in range(0,len(g.global_grid[i].populations)):
 		glob_index.append(i)
 		loc_index.append(j)
+		T = 303.15 - (1/3)*np.absolute(g.global_grid[i].lat)
+		prob_list.append(np.exp(-0.65 / 8.617e-5 / T))
 
-tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index)).T,columns=['glob','loc'])
-print(tree)
+prob_list = prob_list / np.sum(prob_list)
+
+tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index,prob_list)).T,columns=['glob','loc','prob'])
+tree = tree.astype({'glob':'int64'})
+tree = tree.astype({'loc':'int64'})
+
 IDlist = pd.DataFrame(data=np.vstack( (glob_index,loc_index)).T,columns=['glob','loc'])
 IDlist['species'] = -1
 print(IDlist)
@@ -37,13 +44,26 @@ count = 0
 
 t1 = time.time()
 
+def selectCell(t):
+	r = random.uniform(0,1)
+	s = 0
+	index = -1
+	probs = t['prob'].to_numpy()
+	for i in range(0,len(tree)):
+		s += probs[i]
+		if(s > r):
+			index = i
+			print(i)
+			break
+	return(int(index))
+
+
 while(len(tree) > 1):
 
 	print("iteration:" + '\t' + str(count))
-	r = random.randint(0,len(tree)-1)
-	old_pop = g.global_grid[tree.iloc[r]['glob']].populations[tree.iloc[r]['loc']]
+	r = selectCell(tree)
+	old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 	print('old')
-	print(tree.iloc[r])
 
 	rDisp = random.uniform(0,1)
 	disp_pool = []
@@ -72,8 +92,10 @@ while(len(tree) > 1):
 			tree = tree.drop(tree.index[r])
 		else:
 			print('change')
-			tree.iloc[r]['glob'] = new_pop.glob_index
-			tree.iloc[r]['loc'] = new_pop.loc_index
+			tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
+			tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
+			T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
+			tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
 
 		glob_list = copy.deepcopy(IDlist['glob'])
 		loc_list = copy.deepcopy(IDlist['loc'])
@@ -81,16 +103,17 @@ while(len(tree) > 1):
 		IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
 		IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
 
+	tree['prob'] = tree['prob'] / np.sum(tree['prob'])
 
 	count += 1
 
 print(tree)
 print(IDlist)
 
-final_pop = g.global_grid[tree.iloc[0]['glob']].populations[tree.iloc[0]['loc']]
+final_pop = g.global_grid[tree['glob'].iloc[0]].populations[tree['loc'].iloc[0]]
 final_spec = Species(len(spec_list),tree.iloc[0]['glob'],tree.iloc[0]['loc'])
 spec_list.append(final_spec)
-IDlist.loc[ (IDlist['glob']==tree.iloc[0]['glob']) & (IDlist['loc']==tree.iloc[0]['loc']) & (IDlist['species']==-1), 'species'] = final_spec.order
+IDlist.loc[ (IDlist['glob']==tree['glob'].iloc[0]) & (IDlist['loc']==tree['loc'].iloc[0]) & (IDlist['species']==-1), 'species'] = final_spec.order
 
 print(IDlist)
 
