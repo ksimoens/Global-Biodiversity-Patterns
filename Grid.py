@@ -24,11 +24,13 @@ class Grid():
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
-		self.probabilities = np.zeros((len(self.global_grid),2))
+		self.probabilities = np.zeros((len(self.global_grid)))
 		for i in range(0,len(self.probabilities)):
 			T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
-			self.probabilities[i][1] = np.exp(-0.65 / 8.617e-5 / T)
-		self.probabilities = self.probabilities / np.sum(self.probabilities,axis=0)[1]		
+			self.probabilities[i] = np.exp(-0.65 / 8.617e-5 / T)
+		self.Boltz_min = np.min(self.probabilities)
+		print(self.Boltz_min)
+		self.probabilities = self.probabilities / np.sum(self.probabilities,axis=0)
 
 
 	def fillGrid(self,Nspec):
@@ -181,7 +183,7 @@ class Grid():
 		r = random.uniform(0,1)
 		s = 0
 		for i in range(0,len(self.probabilities)):
-			s += self.probabilities[i][1]
+			s += self.probabilities[i]
 			if(s > r):
 				index = i
 				break
@@ -204,6 +206,10 @@ class Grid():
 		old = random.randint(0,len(self.global_grid[i].populations)-1)
 
 		s = random.uniform(0,1)
+
+		T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
+		nu_i = nu * np.exp(-0.65 / 8.617e-5 / T) / self.Boltz_min
+		Pspec = 1 - np.exp(-nu_i)
 
 		if(s < Pspec):
 			self.global_grid[i].populations[old] = self.MaxSpec + 1
@@ -229,9 +235,9 @@ for i in range(0,5000001):
 	print(i)
 	g.turnover()
 
-	if(i%5000==0):
+	if(i%10000==0):
 		g.updateSpecies()
-		g.printGrid(i/5000)
+		g.printGrid(i/10000)
 t2 = time.time()
 print(t2-t1)
 
