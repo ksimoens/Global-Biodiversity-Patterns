@@ -31,11 +31,12 @@ plot(r)
 step_list <- rep(0,1001)
 total_list <- rep(0,1001)
 
-for(i in 0:1000){
+for(i in 0:500){
 
 	dat <- read.csv(paste0('Output/grid_',sprintf("%04d", i),'.csv'),header=T,row.names=1)
-	step_list[i+1] <- i*50000
+	step_list[i+1] <- i*10000
 	total_list[i+1] <- ncol(dat)-2
+	print(i)
 }
 
 df_plot <- data.frame(time=step_list, div=total_list)
@@ -64,7 +65,7 @@ if(F){
 df_plot <- data.frame(matrix(ncol=3,nrow=0))
 colnames(df_plot) = c('lat','aver','time')
 
-for(i in 0:1000){
+for(i in 0:500){
 	dat <- read.csv(paste0('Output/grid_',sprintf("%04d", i),'.csv'),header=T,row.names=1)
 	datLatLon <- dat %>% select(c(1,2))
 	datPA <- dat %>% select(-c(1,2)) %>% decostand(.,method='pa') %>% mutate(total=rowSums(.)) %>% pull(total)
@@ -74,12 +75,12 @@ for(i in 0:1000){
 	print(i)
 }
 
-g <- df_plot %>% ggplot() + geom_line(aes(x=lat,y=aver),linewidth=1) +  coord_flip() +
-					theme_bw() + labs(title = 'turnover: {as.integer(frame_time*5000)}', x = 'latitude (°)', y = 'mean local diversity') +
-					ylim(0,5) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95)) +
+g <- df_plot %>% ggplot() + geom_line(aes(x=lat,y=aver,group=time),linewidth=1) +  coord_flip() +
+					theme_bw() + labs(title = 'turnover: {as.integer(frame_time*10000)}', x = 'latitude (°)', y = 'mean local diversity') +
+					ylim(0,7) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95)) +
 					transition_time(time) + ease_aes('linear') 
 
-g %>% animate(width = 10, height=15,units='cm',res=150,nframes=1000,fps=8)  %>% anim_save('timeseries.gif',.)
+g %>% animate(width = 10, height=15,units='cm',res=150,nframes=500,fps=8)  %>% anim_save('timeseries.gif',.)
 
 }
 
@@ -121,8 +122,8 @@ for(i in 0:500){
 
 g <- test_df %>% ggplot() + geom_tile(aes(x=x,y=y,fill=value)) + theme_bw() + 
 		scale_x_continuous(breaks=seq(-180,180,45), limits=c(-185,180)) + scale_y_continuous(breaks=seq(-90,90,45),limits=c(-95,95)) +
-		labs(title='turnover: {as.integer(frame_time*5000)}',x='longitude',y='latitude') + 
-		scale_fill_viridis_c(name='local diversity',option='magma',breaks=seq(1,11,3)) + 
+		labs(title='turnover: {as.integer(frame_time*10000)}',x='longitude',y='latitude') + 
+		scale_fill_viridis_c(name='local diversity',option='magma',breaks=seq(1,16,3)) + 
 		theme(panel.ontop=T,panel.background = element_rect(fill = NA)) + transition_time(time) + ease_aes('linear')
 
 g %>% animate(width=15,height=10,units='cm',nframes=500,res=150,fps=4) %>% anim_save('timeseries_grid.gif',.)
@@ -131,7 +132,7 @@ g %>% animate(width=15,height=10,units='cm',nframes=500,res=150,fps=4) %>% anim_
 
 if(F){
 
-dat <- read.csv('Output/grid_1000.csv',header=T,row.names=1)
+dat <- read.csv('Output/grid_0500.csv',header=T,row.names=1)
 
 dat <- dat %>% select(c(1,2,3,floor((ncol(.)-2)/3),floor((ncol(.)-2)*2/3),ncol(.))) 
 
@@ -177,7 +178,7 @@ p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
 
 if(T){
 
-dat <- read.csv('Output/grid_1000.csv',header=T,row.names=1) 
+dat <- read.csv('Output/grid_0500.csv',header=T,row.names=1) 
 
 dat_spec <- dat %>% select(-c(1,2))
 
@@ -188,7 +189,7 @@ PCA <- rda(dat_spec.h)
 site.scores <- scores(PCA, scaling=1, display="sites")
 df_plot <- site.scores %>% as.data.frame() %>% mutate(lat = dat %>% pull(lat) %>% abs())
 
-p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('PC1 (6.46 %)') + ylab('PC2 (1.93 %)') + 
+p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('PC1 (2.36 %)') + ylab('PC2 (1.13 %)') + 
 				theme_bw() + scale_colour_viridis_c(option='magma',name='latitude') + 
 				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
 
