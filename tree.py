@@ -30,7 +30,9 @@ for i in range(0,len(g.global_grid)):
 		T = 303.15 - (1/3)*np.absolute(g.global_grid[i].lat)
 		prob_list.append(np.exp(-0.65 / 8.617e-5 / T))
 
-prob_list = prob_list / np.sum(prob_list)
+#prob_list = prob_list / np.sum(prob_list)
+
+boltz_min = np.min(prob_list)
 
 tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index,prob_list)).T,columns=['glob','loc','prob'])
 tree = tree.astype({'glob':'int64'})
@@ -48,7 +50,7 @@ def selectCell(t):
 	r = random.uniform(0,1)
 	s = 0
 	index = -1
-	probs = t['prob'].to_numpy()
+	probs = t['prob'].to_numpy()/np.sum(t['prob'])
 	for i in range(0,len(tree)):
 		s += probs[i]
 		if(s > r):
@@ -73,6 +75,8 @@ while(len(tree) > 1):
 		disp_pool = g.global_grid[old_pop.glob_index].populations
 		disp_pool = np.delete(disp_pool,old_pop.loc_index)
 
+	nu_i = nu * tree['prob'].iloc[r] / boltz_min
+	Pspec = 1 - np.exp(-nu_i)	
 	rSpec = random.uniform(0,1)
 	if(rSpec < Pspec):
 		print('speciation')
@@ -103,7 +107,7 @@ while(len(tree) > 1):
 		IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
 		IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
 
-	tree['prob'] = tree['prob'] / np.sum(tree['prob'])
+	#tree['prob'] = tree['prob'] / np.sum(tree['prob'])
 
 	count += 1
 

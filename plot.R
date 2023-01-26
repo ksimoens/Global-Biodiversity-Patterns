@@ -55,7 +55,7 @@ print(datLatLon)
 
 g <- datLatLon %>% ggplot() + geom_line(aes(x=lat,y=aver),linewidth=1) +  coord_flip() +
 					theme_bw() + labs(x = 'latitude (°)', y = 'mean local diversity') +
-					ylim(0,5) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95))
+					ylim(0,7) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95))
 
 g %>% ggsave('timeseries.png',.,device='png',height=15,width=10,units='cm')
 
@@ -89,7 +89,7 @@ colnames(test_df) <- c("value", "x", "y")
 g <- test_df %>% ggplot() + geom_tile(aes(x=x,y=y,fill=value)) + theme_bw() + 
 		scale_x_continuous(breaks=seq(-180,180,45), limits=c(-185,180)) + scale_y_continuous(breaks=seq(-90,90,45),limits=c(-95,95)) +
 		labs(x='longitude',y='latitude') + 
-		scale_fill_viridis_c(name='local diversity',option='magma',breaks=seq(1,11,3)) + 
+		scale_fill_viridis_c(name='local diversity',option='magma',breaks=seq(1,16,3)) + 
 		theme(panel.ontop=T,panel.background = element_rect(fill = NA))
 
 g %>% ggsave('raster.png',.,device='png',width=15,height=10,units='cm')
@@ -151,11 +151,13 @@ dat_spec <- dat %>% select(-c(1,2))
 dat_spec.h <- dat_spec %>% decostand(.,method='hellinger')
 
 PCA <- rda(dat_spec.h)
+Evalues <- eigenvals(PCA) 
+lambda <- sprintf("%.2f",round(Evalues[1:2] / sum(Evalues) *100, 2))
 
 site.scores <- scores(PCA, scaling=1, display="sites")
 df_plot <- site.scores %>% as.data.frame() %>% mutate(lat = dat %>% pull(lat) %>% abs())
 
-p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('PC1 (2.37 %)') + ylab('PC2 (2.12 %)') + 
+p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab(paste0('PC1 (',lambda[1],' %)')) + ylab(paste0('PC2 (',lambda[2],' %)')) + 
 				theme_bw() + scale_colour_viridis_c(option='magma',name='latitude') + 
 				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
 
