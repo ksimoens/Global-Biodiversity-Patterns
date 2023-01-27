@@ -6,6 +6,7 @@ import pandas as pd
 import random
 import copy
 import time
+import multiprocessing as mp
 
 class Species():
 
@@ -19,11 +20,11 @@ def selectCell(t):
 	s = 0
 	index = -1
 	probs = t['prob'].to_numpy()/np.sum(t['prob'])
-	for i in range(0,len(tree)):
+	for i in range(0,len(t)):
 		s += probs[i]
 		if(s > r):
 			index = i
-			print(i)
+			#print(i)
 			break
 	return(int(index))
 
@@ -35,7 +36,9 @@ t1 = time.time()
 
 Nrange = 100
 
-for k in range(0,Nrange):
+core_list = []
+
+def replicateRun(k):
 
 	print("---------------------------------------------")
 	print("SIMULATION RUN " + str(k) + " of " + str(Nrange))
@@ -71,23 +74,12 @@ for k in range(0,Nrange):
 
 	count = 0
 
-	def selectCell(t):
-		r = random.uniform(0,1)
-		s = 0
-		index = -1
-		probs = t['prob'].to_numpy()/np.sum(t['prob'])
-		for i in range(0,len(tree)):
-			s += probs[i]
-			if(s > r):
-				index = i
-				#print(i)
-				break
-		return(int(index))
+	pid = os.getpid()
+	random.seed(pid*time.time())
 
 
 	while(len(tree) > 1):
-
-		print("iteration:" + '\t' + str(count))
+		print("iteration:" + '\t' + str(count),end='\r')
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 		#print('old')
@@ -180,6 +172,10 @@ for k in range(0,Nrange):
 	df_out = pd.DataFrame(data=darray, columns=names_out)
 			
 	df_out.to_csv('Output/grid_' + str(int(k)).zfill(4) + '.csv')
+
+pool = mp.Pool(mp.cpu_count())
+pool.map(replicateRun, [k for k in range(0,Nrange)])
+pool.close()
 
 t2 = time.time()
 
