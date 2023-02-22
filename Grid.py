@@ -29,7 +29,7 @@ class Grid():
 	def fillGrid(self):
 		
 		for loc in self.global_grid:
-			loc.fillLocal(Nloc)
+			loc.fillLocal()
 		#self.Nspec = Nspec
 		#self.species = np.arange(0,Nspec)
 		#self.MaxSpec = np.max(self.species)
