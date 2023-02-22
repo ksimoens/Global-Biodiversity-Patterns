@@ -15,16 +15,20 @@ class Species():
 		self.loc_index = i_loc
 
 def selectCell(t):
-	r = random.uniform(0,1)
-	s = 0
-	index = -1
-	probs = t['prob'].to_numpy()/np.sum(t['prob'])
-	for i in range(0,len(tree)):
-		s += probs[i]
-		if(s > r):
-			index = i
-			print(i)
-			break
+	if(TempTurnover):
+		r = random.uniform(0,1)
+		s = 0
+		index = -1
+		probs = t['prob'].to_numpy()/np.sum(t['prob'])
+		for i in range(0,len(t)):
+			s += probs[i]
+			if(s > r):
+				index = i
+				print(i)
+				break
+	else:
+		index = random.randint(0,len(t)-1)
+
 	return(int(index))
 
 if(os.path.exists("Output")):
@@ -48,18 +52,23 @@ for k in range(0,Nrange):
 
 	glob_index = []
 	loc_index = []
-	prob_list = []
 
+	prob_list = []
 	for i in range(0,len(g.global_grid)):
 		for j in range(0,len(g.global_grid[i].populations)):
 			glob_index.append(i)
 			loc_index.append(j)
-			T = 303.15 - (1/3)*np.absolute(g.global_grid[i].lat)
-			prob_list.append(np.exp(-0.65 / 8.617e-5 / T))
+			if(TempTurnover):	
+				T = 303.15 - (1/3)*np.absolute(g.global_grid[i].lat)
+				prob_list.append(np.exp(-0.65 / 8.617e-5 / T))
+			else:
+				prob_list.append(-1)
 
 	#prob_list = prob_list / np.sum(prob_list)
 
-	boltz_min = np.min(prob_list)
+	if(TempSpeciation):
+		temp_min = 303.15 - (1/3)*np.absolute(g.lat_max)
+		boltz_min = np.exp(-0.65 / 8.617e-5 / temp_min)
 
 	tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index,prob_list)).T,columns=['glob','loc','prob'])
 	tree = tree.astype({'glob':'int64'})
@@ -71,18 +80,7 @@ for k in range(0,Nrange):
 
 	count = 0
 
-	def selectCell(t):
-		r = random.uniform(0,1)
-		s = 0
-		index = -1
-		probs = t['prob'].to_numpy()/np.sum(t['prob'])
-		for i in range(0,len(tree)):
-			s += probs[i]
-			if(s > r):
-				index = i
-				#print(i)
-				break
-		return(int(index))
+
 
 
 	while(len(tree) > 1):
@@ -90,7 +88,7 @@ for k in range(0,Nrange):
 		print("iteration:" + '\t' + str(count))
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
-		#print('old')
+		print('old')
 
 		rDisp = random.uniform(0,1)
 		disp_pool = []
@@ -100,31 +98,35 @@ for k in range(0,Nrange):
 			disp_pool = g.global_grid[old_pop.glob_index].populations
 			disp_pool = np.delete(disp_pool,old_pop.loc_index)
 
-		nu_i = nu * tree['prob'].iloc[r] / boltz_min
-		Pspec = 1 - np.exp(-nu_i)	
+		if(TempSpeciation):
+			Pspec_i = Pspec * tree['prob'].iloc[r] / boltz_min
+		else:
+			Pspec_i = Pspec
+
 		rSpec = random.uniform(0,1)
-		if(rSpec < Pspec):
-			#print('speciation')
-			#print(len(spec_list))
+		if(rSpec < Pspec_i):
+			print('speciation')
+			print(len(spec_list))
 			new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index)
 			spec_list.append(new_spec)
 			IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index) & (IDlist['species']==-1), 'species'] = new_spec.order
 			tree = tree.drop(tree.index[r])
 		else:
-			#print('dispersal')
+			print('dispersal')
 			rNew = random.randint(0,len(disp_pool)-1)
 			new_pop = disp_pool[rNew]
-			#print('new')
-			#print(str(new_pop.glob_index) + '\t' + str(new_pop.loc_index))
+			print('new')
+			print(str(new_pop.glob_index) + '\t' + str(new_pop.loc_index))
 			if len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0:
-				#print('remove')
+				print('remove')
 				tree = tree.drop(tree.index[r])
 			else:
-				#print('change')
+				print('change')
 				tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
 				tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
-				T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
-				tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
+				if(TempTurnover):
+					T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
+					tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
 
 			glob_list = copy.deepcopy(IDlist['glob'])
 			loc_list = copy.deepcopy(IDlist['loc'])

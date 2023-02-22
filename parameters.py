@@ -5,6 +5,8 @@ Nlat = 14
 
 Nloc = 16
 
-m = 0.1
-Pdisp = 1 - np.exp(-m)
-nu = 0.01
+Pdisp = 0.1
+Pspec = 0.01
+
+TempTurnover = True
+TempSpeciation = True

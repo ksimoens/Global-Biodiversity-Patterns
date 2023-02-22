@@ -24,6 +24,7 @@ class Grid():
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
+		self.lat_max = df_grid['Y_COORD'].abs().max()
 
 	def fillGrid(self):
 		
