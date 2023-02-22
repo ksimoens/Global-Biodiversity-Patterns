@@ -21,18 +21,25 @@ class Grid():
 				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,2],k+1) )
 				k += 1
 
+		if(TempSpeciation):
+			lat_max = df_grid['Y_COORD'].abs().max()
+			T_min = 303.15 - (1/3)*np.absolute(lat_max)
+			self.Boltz_min = np.exp(-0.65 / 8.617e-5 / T_min)
+
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
-		if(TempTurnover or TempSpeciation):
-			self.probabilities = np.zeros((len(self.global_grid)))
-			for i in range(0,len(self.probabilities)):
+		self.probabilities = np.ones((len(self.global_grid)))
+
+	def adjustProbabilities(self):
+		for i in range(0,len(self.probabilities)):
+			if(TempTurnover):
 				T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
-				self.probabilities[i] = np.exp(-0.65 / 8.617e-5 / T)
-			self.Boltz_min = np.min(self.probabilities)
-			self.probabilities = self.probabilities / np.sum(self.probabilities,axis=0)
+				self.probabilities[i] *= np.exp(-0.65 / 8.617e-5 / T)
+			if(AreaHabitat):
+				self.probabilities[i] *= self.global_grid[i].Nloc_i
 
-
+		self.probabilities = self.probabilities / np.sum(self.probabilities,axis=0)
 
 	def fillGrid(self,Nspec):
 		
@@ -208,7 +215,7 @@ class Grid():
 			disp_pool = self.global_grid[i].populations
 			print('local')
 
-		old = random.randint(0,len(self.global_grid[i].populations)-1)
+		old = random.randint(0,self.global_grid[i].Nloc_i-1)
 
 		s = random.uniform(0,1)
 
@@ -235,6 +242,7 @@ os.mkdir("Output")
 
 g = Grid()
 g.fillGrid(1)
+g.adjustProbabilities()
 g.printGrid(0)
 
 t1 = time.time()

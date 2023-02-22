@@ -8,5 +8,6 @@ Nloc = 16
 Pdisp = 0.1
 Pspec = 0.01
 
-TempTurnover = True
+TempTurnover = False
 TempSpeciation = False
+AreaHabitat = True

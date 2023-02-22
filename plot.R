@@ -7,7 +7,7 @@ library(gganimate)
 library(gifski)
 library(transformr)
 
-if(F){
+if(T){
 dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 
 datpa <- decostand(dat[,3:ncol(dat)],method='pa')
@@ -25,7 +25,7 @@ proj4string(test)=CRS("+init=epsg:4326")
 gridded(test) <- TRUE
 
 r <- raster(test)
-plot(r)
+#plot(r)
 
 
 step_list <- rep(0,1001)
@@ -47,15 +47,15 @@ p <- df_plot %>% ggplot() + geom_line(aes(x=time,y=div),linewidth=1) + theme_bw(
 p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 
-df_plot <- read.csv('output1.csv',header=T,row.names=1)
+#df_plot <- read.csv('output1.csv',header=T,row.names=1)
 
-df_plot <- df_plot %>% mutate(div2 = read.csv('output2.csv',header=T,row.names=1) %>% pull(div)) %>%
-			pivot_longer(cols=c(div,div2), names_to='run',values_to='div' )
+#df_plot <- df_plot %>% mutate(div2 = read.csv('output2.csv',header=T,row.names=1) %>% pull(div)) %>%
+#			pivot_longer(cols=c(div,div2), names_to='run',values_to='div' )
 
-p <- df_plot %>% ggplot() + geom_line(aes(x=time,y=div,col=run),linewidth=0.5) + theme_bw() +
-					xlab('turnover') + ylab('global diversity') +
-					scale_colour_manual(values=c('black','red'), labels=c(1,2))
-p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
+#p <- df_plot %>% ggplot() + geom_line(aes(x=time,y=div,col=run),linewidth=0.5) + theme_bw() +
+#					xlab('turnover') + ylab('global diversity') +
+#					scale_colour_manual(values=c('black','red'), labels=c(1,2))
+#p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
@@ -77,7 +77,7 @@ for(i in 0:500){
 
 g <- df_plot %>% ggplot() + geom_line(aes(x=lat,y=aver,group=time),linewidth=1) +  coord_flip() +
 					theme_bw() + labs(title = 'turnover: {as.integer(frame_time*10000)}', x = 'latitude (°)', y = 'mean local diversity') +
-					ylim(0,7) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95)) +
+					scale_y_continuous(limits=c(0,15),breaks=0:15) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95)) +
 					transition_time(time) + ease_aes('linear') 
 
 g %>% animate(width = 10, height=15,units='cm',res=150,nframes=500,fps=8)  %>% anim_save('timeseries.gif',.)
@@ -176,7 +176,7 @@ p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
 
 }
 
-if(T){
+if(F){
 
 dat <- read.csv('Output/grid_0500.csv',header=T,row.names=1) 
 
