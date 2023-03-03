@@ -7,6 +7,7 @@ import shutil
 
 from parameters import*
 from Local import*
+from Species import*
 
 class Grid():
 
@@ -27,7 +28,7 @@ class Grid():
 			self.Boltz_min = np.exp(-0.65 / 8.617e-5 / T_min)
 
 		self.Nspec = 0
-		self.species = np.zeros(self.Nspec)
+		self.species = []
 		self.MaxSpec = 0
 		self.probabilities = np.ones((len(self.global_grid)))
 
@@ -43,11 +44,24 @@ class Grid():
 
 	def fillGrid(self,Nspec):
 		
-		for loc in self.global_grid:
-			loc.fillLocal(Nspec)
-		self.Nspec = Nspec
-		self.species = np.arange(0,Nspec)
-		self.MaxSpec = np.max(self.species)
+		if(TempNiches):
+			for ilat in range(0,Nlat):
+				 T = 303.15 - (1/3)*np.absolute(self.global_grid[ilat*Nlon].lat)
+				 spec = Species(T,self.Nspec)
+				 self.Nspec += 1
+				 self.species.append(spec)
+				 for ilon in range(0,Nlon):
+				 	for i in range(0,len(self.global_grid[ilat*Nlon + ilon].populations)):
+				 		self.global_grid[ilat*Nlon + ilon].populations[i] = spec.index
+
+			self.MaxSpec = self.Nspec - 1
+
+		else:
+			for loc in self.global_grid:
+				loc.fillLocal(Nspec)
+			self.Nspec = Nspec
+			self.species = np.arange(0,Nspec)
+			self.MaxSpec = np.max(self.species)
 
 	def updateSpecies(self):
 
@@ -55,14 +69,25 @@ class Grid():
 		for cell in self.global_grid:
 			pop_list = np.concatenate((pop_list,cell.populations))
 
-		self.species = np.array([])
-		for i in range(0,self.MaxSpec+1):
-			n = np.count_nonzero(pop_list == i)
-			if(n != 0):
-				self.species = np.append(self.species,i)
+		if(TempNiches):
+			new_spec_list = []
+			for spec in self.species:
+				n = np.count_nonzero(pop_list == spec.index)
+				if(n != 0):
+					new_spec_list.append(spec)
+
+			self.species = new_spec_list
+
+
+		else:
+			self.species = np.array([])
+			for i in range(0,self.MaxSpec+1):
+				n = np.count_nonzero(pop_list == i)
+				if(n != 0):
+					self.species = np.append(self.species,i)
 
 		self.Nspec = len(self.species)
-		print(self.species)
+		print('Number of active species: ',str(self.Nspec))
 
 	def printGrid(self,step):
 
@@ -76,12 +101,21 @@ class Grid():
 			lat_list[i] = self.global_grid[i].lat
 
 			for j in range(0,self.Nspec):
-				spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j])
+				if(TempNiches):
+					spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j].index)
+				else:
+					spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j])
 
 
 		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
 		darray = np.concatenate( (darray,spec_list) ,axis=1)
-		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in self.species] 		
+		if(TempNiches):
+			ID_list_spec = np.array([])
+			for spec in self.species:
+				ID_list_spec = np.append(ID_list_spec,spec.index)
+			names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list_spec]
+		else: 
+			names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in self.species] 		
 		df_out = pd.DataFrame(data=darray, columns=names_out)
 		
 		df_out.to_csv('Output/grid_' + str(int(step)).zfill(4) + '.csv')
@@ -227,10 +261,29 @@ class Grid():
 
 		if(s < Pspec_i):
 			self.global_grid[i].populations[old] = self.MaxSpec + 1
+			if(TempNiches):
+				T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
+				self.species.append(Species(T,self.MaxSpec + 1))
 			self.MaxSpec += 1
 			print('speciation')
 		else:
-			new = random.randint(0,len(disp_pool)-1)
+			valid = False
+			while(not valid):
+				new = random.randint(0,len(disp_pool)-1)
+				if(TempNiches):
+					T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
+					i_spec = disp_pool[new]
+					new_spec = None
+					for spec in self.species:
+						if(spec.index == i_spec):
+							new_spec = spec
+							break
+					if(T > new_spec.min_temp and T < new_spec.max_temp):
+						valid = True
+
+				else:
+					valid = True
+
 			self.global_grid[i].populations[old] = disp_pool[new]
 
 

@@ -17,7 +17,9 @@ class Local():
 		self.populations = np.zeros(self.Nloc_i)
 
 	def fillLocal(self,Nspec):
-
+			
 		for i in range(0,len(self.populations)):
 			self.populations[i] = random.randint(0,Nspec-1)
+
+
 
