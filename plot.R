@@ -46,7 +46,7 @@ p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 if(F){
 
-dat <- read.csv('grid_0000.csv',header=T,row.names=1)
+dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 datLatLon <- dat %>% select(c(1,2))
 datPA <- dat %>% select(-c(1,2)) %>% decostand(.,method='pa') %>% mutate(total=rowSums(.)) %>% pull(total)
 datLatLon <- datLatLon %>% mutate(total=datPA) %>% group_by(lat) %>% summarise(aver=mean(total))
@@ -96,11 +96,11 @@ g %>% ggsave('raster.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-if(F){
+if(T){
 
-dat <- read.csv('grid_0000.csv',header=T,row.names=1)
+dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 
-dat <- dat %>% select(c(1,2,3,floor((ncol(.)-2)/3),floor((ncol(.)-2)*2/3),ncol(.))) 
+dat <- dat %>% select(c(1,2,2711,floor((ncol(.)-2)/3),floor((ncol(.)-2)*2/3),ncol(.))) 
 
 r <- raster(ncol=45,nrow=14,xmn=-180,xmx=180,ymn=-90,ymx=90)
 crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
@@ -142,7 +142,7 @@ p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
 
 }
 
-if(T){
+if(F){
 
 dat <- read.csv('grid_0000.csv',header=T,row.names=1) 
 
