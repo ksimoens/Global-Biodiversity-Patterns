@@ -19,17 +19,17 @@ class Species():
 
 spec_list = []
 
-glob_index = []
-loc_index = []
+lat_index = []
+lon_index = []
 
 for i in range(0,len(g.global_grid)):
-	for j in range(0,len(g.global_grid[i].populations)):
-		glob_index.append(i)
-		loc_index.append(j)
+	for j in range(0,len(g.global_grid[i])):
+		lat_index.append(i)
+		lon_index.append(j)
 
-tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index)).T,columns=['glob','loc'])
+tree = pd.DataFrame(data=np.vstack( (lat_index,lon_index)).T,columns=['lat','lon'])
 print(tree)
-IDlist = pd.DataFrame(data=np.vstack( (glob_index,loc_index)).T,columns=['glob','loc'])
+IDlist = pd.DataFrame(data=np.vstack( (lat_index,lon_index)).T,columns=['lat','lon'])
 IDlist['species'] = -1
 print(IDlist)
 
@@ -41,17 +41,20 @@ while(len(tree) > 1):
 
 	print("iteration:" + '\t' + str(count))
 	r = random.randint(0,len(tree)-1)
-	old_pop = g.global_grid[tree.iloc[r]['glob']].populations[tree.iloc[r]['loc']]
+	old_pop = g.global_grid[tree.iloc[r]['lat']][tree.iloc[r]['lon']]
+	print(old_pop)
 	print('old')
 	print(tree.iloc[r])
 
 	rDisp = random.uniform(0,1)
 	disp_pool = []
+	'''
 	if rDisp < Pdisp:
 		disp_pool = g.getNeighbours(old_pop.glob_index)
 	else:
 		disp_pool = g.global_grid[old_pop.glob_index].populations
 		disp_pool = np.delete(disp_pool,old_pop.loc_index)
+	'''
 
 	rSpec = random.uniform(0,1)
 	if(rSpec < Pspec):
