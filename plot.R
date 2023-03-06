@@ -44,7 +44,7 @@ p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-if(F){
+if(T){
 
 dat <- read.csv('grid_0000.csv',header=T,row.names=1)
 datLatLon <- dat %>% select(c(1,2))
@@ -142,6 +142,8 @@ p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
 
 }
 
+if(F){
+
 dat <- read.csv('grid_0000.csv',header=T,row.names=1) 
 
 dat_spec <- dat %>% select(-c(1,2))
@@ -158,3 +160,5 @@ p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab('
 				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
 
 p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
+
+}

@@ -6,11 +6,10 @@ from Population import*
 
 class Local():
 
-	def __init__(self,lon,lat,i):
+	def __init__(self,lon,lat):
 		self.populations = []
 		self.lon = lon
 		self.lat = lat
-		self.index = i
 
 	def fillLocal(self,N):
 

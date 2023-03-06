@@ -3,8 +3,8 @@ import numpy as np
 
 class Population():
 
-	def __init__(self,i_glo,i_loc):
+	def __init__(self,i_lat,i_lon):
 
-		self.glob_index = i_glo
-		self.loc_index = i_loc
+		self.lat_index = i_lat
+		self.lon_index = i_lon
 		self.species = -1

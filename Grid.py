@@ -12,7 +12,7 @@ class Grid():
 
 	def __init__(self):
 
-		self.global_grid = np.empty([int(Nlat*np.sqrt(Nloc)),int(Nlon*np.sqrt(Nloc))])
+		self.global_grid = np.empty([Nlat,Nlon]).tolist()
 		
 		
 		#df_grid = pd.read_csv('land_all_data_inc_working.csv').iloc[:,[0,5,6]]
@@ -20,15 +20,12 @@ class Grid():
 		self.Nspec = Nspec0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = Nspec0-1 
-		print(self.global_grid.shape[0])
 
 	def fillGrid(self):
 		
-		c = 0
 		for i in range(0,Nlat):
 			for j in range(0,Nlon):
-				self.global_grid[i][j] = c#random.randint(0,Nspec0-1)
-				c += 1
+				self.global_grid[i][j] = Population(i,j)
 
 
 
