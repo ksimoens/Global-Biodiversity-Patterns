@@ -183,12 +183,32 @@ def replicateRun(a):
 	names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list] 		
 	df_out = pd.DataFrame(data=darray, columns=names_out)
 			
-	df_out.to_csv('Output/grid_' + str(int(a)).zfill(4) + '.csv')
+	#df_out.to_csv('Output/grid_' + str(int(a)).zfill(4) + '.csv')
+
+	hor_list = np.zeros(len(IDlist))
+	vert_list = np.zeros(len(IDlist))
+
+	specV_array = np.zeros(len(IDlist))
+
+	c = 0
+	for i in range(0,Nlat):
+		for j in range(0,Nlon):
+			vert_list[c] = i
+			hor_list[c] = j
+			specV_array[c] = IDlist['species'][c]
+			c += 1
+
+	dVarray = np.concatenate((hor_list, vert_list, specV_array)).reshape((-1, 3), order='F')
+	names_out = ['lon','lat','spec'] 		
+	dfV_out = pd.DataFrame(data=dVarray, columns=names_out)
+
+	dfV_out.to_csv('OutputV/gridV_' + str(int(a)).zfill(4) + '.csv')
+
 
 t1 = time.time()
 
 pool = mp.Pool(2)
-pool.map(replicateRun, [k for k in range(0,10)])
+pool.map(replicateRun, [k for k in range(0,1)])
 pool.close()
 
 t2 = time.time()

@@ -10,4 +10,4 @@ Nlon = int(Nlon*np.sqrt(Nloc))
 Nlat = int(Nlat*np.sqrt(Nloc))
 
 Pdisp = 0.1
-Pspec = 0.0001
+Pspec = 0.00005
