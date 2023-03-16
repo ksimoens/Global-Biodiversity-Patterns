@@ -44,7 +44,7 @@ p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-if(F){
+if(T){
 
 dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 datLatLon <- dat %>% select(c(1,2))

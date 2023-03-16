@@ -122,60 +122,85 @@ for k in range(0,Nrange):
 
 		rSpec = random.uniform(0,1)
 
-		valid = False
+		if(TempNiches):
+			valid = False
 
-		print(str(IDlist['temp_min'].iloc[old_pop.glob_index*Nloc + old_pop.loc_index]),'\t',str(IDlist['temp_max'].iloc[old_pop.glob_index*Nloc + old_pop.loc_index]))
+			vcount = 0
 
-		vcount = 0
+			while(not valid):
 
-		while(not valid):
+				rNew = random.randint(0,len(disp_pool)-1)
+				new_pop = disp_pool[rNew]
 
-			rNew = random.randint(0,len(disp_pool)-1)
-			new_pop = disp_pool[rNew]
+				if(rSpec < Pspec_i or len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0):
+					temp_min_new = IDlist['temp_min'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
+					temp_max_new = IDlist['temp_max'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
+					print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
 
-			if(rSpec < Pspec_i or len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0):
-				temp_min_new = IDlist['temp_min'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
-				temp_max_new = IDlist['temp_max'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
-				print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
+					temp_min_old = tree['temp_min'].iloc[r]
+					temp_max_old = tree['temp_max'].iloc[r]
+					print('old ',str(temp_min_old) + '\t' + str(temp_max_old))
 
-				temp_min_old = tree['temp_min'].iloc[r]
-				temp_max_old = tree['temp_max'].iloc[r]
-				print('old ',str(temp_min_old) + '\t' + str(temp_max_old))
+					T = 303.15 - (1/3)*np.absolute(g.global_grid[tree['glob'].iloc[r]].lat) 
+					print('T ',str(T))
+					temp_min_new = min(temp_min_new,T)
+					temp_max_new = max(temp_max_new,T)
+					print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
 
-				T = 303.15 - (1/3)*np.absolute(g.global_grid[tree['glob'].iloc[r]].lat) 
-				print('T ',str(T))
-				temp_min_new = min(temp_min_new,T)
-				temp_max_new = max(temp_max_new,T)
-				print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
-
-				if(rSpec < Pspec_i):
-					print('speciation')
-					temp_min_final = temp_min_new
-					temp_max_final = temp_max_new
-				else:
-					print('remove')
-					temp_min_final = min(temp_min_new,temp_min_old)
-					temp_max_final = max(temp_max_new,temp_max_old)
-
-				print('final ',str(temp_min_final), '\t', str(temp_max_final))
-
-				temp_diff_final = temp_max_final - temp_min_final
-				if(temp_diff_final > 2*NicheWidth):
-					valid = False
-
-				else:
 					if(rSpec < Pspec_i):
-						if(np.absolute(T - temp_min_final) <= NicheWidth and np.absolute(T - temp_max_final) <= NicheWidth):
-							valid = True
-							new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index,T-NicheWidth,T+NicheWidth)
-							spec_list.append(new_spec)
-							IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_min'] = temp_min_new
-							IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_max'] = temp_max_new
-							IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index) & (IDlist['species']==-1), 'species'] = new_spec.order
-							tree = tree.drop(tree.index[r])
-						else:
-							valid = False
+						print('speciation')
+						temp_min_final = temp_min_new
+						temp_max_final = temp_max_new
+					else:
+						print('remove')
+						temp_min_final = min(temp_min_new,temp_min_old)
+						temp_max_final = max(temp_max_new,temp_max_old)
 
+					print('final ',str(temp_min_final), '\t', str(temp_max_final))
+
+					temp_diff_final = temp_max_final - temp_min_final
+					if(temp_diff_final > 2*NicheWidth):
+						valid = False
+
+					else:
+						if(rSpec < Pspec_i):
+							if(np.absolute(T - temp_min_final) <= NicheWidth and np.absolute(T - temp_max_final) <= NicheWidth):
+								valid = True
+								new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index,T-NicheWidth,T+NicheWidth)
+								spec_list.append(new_spec)
+								IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_min'] = temp_min_new
+								IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_max'] = temp_max_new
+								IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index) & (IDlist['species']==-1), 'species'] = new_spec.order
+								tree = tree.drop(tree.index[r])
+							else:
+								valid = False
+
+						else:
+							valid = True
+							IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_min'] = temp_min_final
+							IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_max'] = temp_max_final
+							glob_list = copy.deepcopy(IDlist['glob'])
+							loc_list = copy.deepcopy(IDlist['loc'])
+							IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
+							IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
+							tree = tree.drop(tree.index[r])
+
+				else:
+					print('replace')
+					temp_min_old = tree['temp_min'].iloc[r]
+					temp_max_old = tree['temp_max'].iloc[r]
+
+					print('old ',str(temp_min_old),'\t',str(temp_max_old))
+
+					T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
+					
+					temp_min_final = min(temp_min_old,T)
+					temp_max_final = max(temp_max_old,T)
+
+					print('final ',str(temp_min_final),'\t',str(temp_max_final))
+
+					if(temp_max_final - temp_min_final > 2*NicheWidth):
+						valid = False
 					else:
 						valid = True
 						IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_min'] = temp_min_final
@@ -184,55 +209,20 @@ for k in range(0,Nrange):
 						loc_list = copy.deepcopy(IDlist['loc'])
 						IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
 						IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
-						tree = tree.drop(tree.index[r])
+						tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
+						tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
+						tree.iloc[r,tree.columns.get_loc('temp_min')] = temp_min_final
+						tree.iloc[r,tree.columns.get_loc('temp_max')] = temp_max_final
+						if(TempTurnover):
+							T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
+							tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
 
-			else:
-				print('replace')
-				temp_min_old = tree['temp_min'].iloc[r]
-				temp_max_old = tree['temp_max'].iloc[r]
-
-				print('old ',str(temp_min_old),'\t',str(temp_max_old))
-
-				T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
-				
-				temp_min_final = min(temp_min_old,T)
-				temp_max_final = max(temp_max_old,T)
-
-				print('final ',str(temp_min_final),'\t',str(temp_max_final))
-
-				if(temp_max_final - temp_min_final > 2*NicheWidth):
-					valid = False
-				else:
-					valid = True
-					IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_min'] = temp_min_final
-					IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index), 'temp_max'] = temp_max_final
-					glob_list = copy.deepcopy(IDlist['glob'])
-					loc_list = copy.deepcopy(IDlist['loc'])
-					IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
-					IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
-					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
-					tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
-					tree.iloc[r,tree.columns.get_loc('temp_min')] = temp_min_final
-					tree.iloc[r,tree.columns.get_loc('temp_max')] = temp_max_final
-					if(TempTurnover):
-						T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
-						tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
-
-			vcount += 1
-			if(vcount > 1000):
-				for pop in disp_pool:
-					print(str(IDlist['temp_min'].iloc[pop.glob_index*Nloc + pop.loc_index]),'\t',str(IDlist['temp_max'].iloc[pop.glob_index*Nloc + pop.loc_index]))
-				input()
-				
-
-			
-		print(str(IDlist['temp_min'].iloc[old_pop.glob_index*Nloc + old_pop.loc_index]),'\t',str(IDlist['temp_max'].iloc[old_pop.glob_index*Nloc + old_pop.loc_index]))
-		#input()
-
-
-		'''
-
-
+				vcount += 1
+				if(vcount > 1000):
+					for pop in disp_pool:
+						print(str(IDlist['temp_min'].iloc[pop.glob_index*Nloc + pop.loc_index]),'\t',str(IDlist['temp_max'].iloc[pop.glob_index*Nloc + pop.loc_index]))
+					input()
+		else:
 			if(rSpec < Pspec_i):
 				print('speciation')
 				print(len(spec_list))
@@ -263,8 +253,6 @@ for k in range(0,Nrange):
 				IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'glob' ] = new_pop.glob_index
 				IDlist.loc[ (glob_list==old_pop.glob_index) & (loc_list==old_pop.loc_index),'loc' ] = new_pop.loc_index
 
-		#tree['prob'] = tree['prob'] / np.sum(tree['prob'])
-		'''
 		count += 1
 
 	#print(tree)
@@ -315,5 +303,3 @@ for k in range(0,Nrange):
 t2 = time.time()
 
 print(t2 - t1)
-		
-

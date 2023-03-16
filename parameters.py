@@ -13,4 +13,4 @@ NicheWidth = 10
 TempTurnover = False
 TempSpeciation = False
 AreaHabitat = False
-TempNiches = True
+TempNiches = False
