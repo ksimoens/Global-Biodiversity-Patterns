@@ -6,6 +6,7 @@ import pandas as pd
 import random
 import copy
 import time
+import multiprocessing as mp
 
 class Species():
 
@@ -38,11 +39,7 @@ if(os.path.exists("Output")):
 	shutil.rmtree("Output")
 os.mkdir("Output")
 
-t1 = time.time()
-
-Nrange = 1
-
-for k in range(0,Nrange):
+def replicateRun(k):
 
 	print("---------------------------------------------")
 	print("SIMULATION RUN " + str(k) + " of " + str(Nrange))
@@ -93,17 +90,16 @@ for k in range(0,Nrange):
 	else:
 		IDlist = pd.DataFrame(data=np.vstack( (glob_index,loc_index)).T,columns=['glob','loc'])
 	IDlist['species'] = -1
-	#print(IDlist)
 
 	count = 0
 
-
+	tree_0 = len(str(len(tree)))
 
 
 
 	while(len(tree) > 1):
 
-		print("iteration:" + '\t' + str(count) + '\t' + str(len(tree)))
+		print("iteration:" + '\t' + str(count).zfill(8) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 
@@ -135,28 +131,22 @@ for k in range(0,Nrange):
 				if(rSpec < Pspec_i or len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0):
 					temp_min_new = IDlist['temp_min'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
 					temp_max_new = IDlist['temp_max'].iloc[new_pop.glob_index*Nloc + new_pop.loc_index]
-					print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
-
+					
 					temp_min_old = tree['temp_min'].iloc[r]
 					temp_max_old = tree['temp_max'].iloc[r]
-					print('old ',str(temp_min_old) + '\t' + str(temp_max_old))
 
 					T = 303.15 - (1/3)*np.absolute(g.global_grid[tree['glob'].iloc[r]].lat) 
-					print('T ',str(T))
 					temp_min_new = min(temp_min_new,T)
 					temp_max_new = max(temp_max_new,T)
-					print('new ',str(temp_min_new) + '\t' + str(temp_max_new))
 
 					if(rSpec < Pspec_i):
-						print('speciation')
+						# speciation
 						temp_min_final = temp_min_new
 						temp_max_final = temp_max_new
 					else:
-						print('remove')
+						# remove
 						temp_min_final = min(temp_min_new,temp_min_old)
 						temp_max_final = max(temp_max_new,temp_max_old)
-
-					print('final ',str(temp_min_final), '\t', str(temp_max_final))
 
 					temp_diff_final = temp_max_final - temp_min_final
 					if(temp_diff_final > 2*NicheWidth):
@@ -186,18 +176,14 @@ for k in range(0,Nrange):
 							tree = tree.drop(tree.index[r])
 
 				else:
-					print('replace')
+					# replace
 					temp_min_old = tree['temp_min'].iloc[r]
 					temp_max_old = tree['temp_max'].iloc[r]
-
-					print('old ',str(temp_min_old),'\t',str(temp_max_old))
 
 					T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
 					
 					temp_min_final = min(temp_min_old,T)
 					temp_max_final = max(temp_max_old,T)
-
-					print('final ',str(temp_min_final),'\t',str(temp_max_final))
 
 					if(temp_max_final - temp_min_final > 2*NicheWidth):
 						valid = False
@@ -224,23 +210,20 @@ for k in range(0,Nrange):
 					input()
 		else:
 			if(rSpec < Pspec_i):
-				print('speciation')
-				print(len(spec_list))
+				# speciation
 				new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index)
 				spec_list.append(new_spec)
 				IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index) & (IDlist['species']==-1), 'species'] = new_spec.order
 				tree = tree.drop(tree.index[r])
 			else:
-				print('dispersal')
+				# dispersal
 				rNew = random.randint(0,len(disp_pool)-1)
 				new_pop = disp_pool[rNew]
-				print('new')
-				print(str(new_pop.glob_index) + '\t' + str(new_pop.loc_index))
 				if len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0:
-					print('remove')
+					# remove
 					tree = tree.drop(tree.index[r])
 				else:
-					print('change')
+					# change
 					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
 					tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
 					if(TempTurnover):
@@ -255,16 +238,10 @@ for k in range(0,Nrange):
 
 		count += 1
 
-	#print(tree)
-	#print(IDlist)
-
 	final_pop = g.global_grid[tree['glob'].iloc[0]].populations[tree['loc'].iloc[0]]
 	final_spec = Species(len(spec_list),tree.iloc[0]['glob'],tree.iloc[0]['loc'])
 	spec_list.append(final_spec)
 	IDlist.loc[ (IDlist['glob']==tree['glob'].iloc[0]) & (IDlist['loc']==tree['loc'].iloc[0]) & (IDlist['species']==-1), 'species'] = final_spec.order
-
-	#print(IDlist)
-
 
 	c = 0
 	for i in range(0,len(g.global_grid)):
@@ -300,6 +277,15 @@ for k in range(0,Nrange):
 			
 	df_out.to_csv('Output/grid_' + str(int(k)).zfill(4) + '.csv')
 
+
+t1 = time.time()
+
+Nrange = 2
+
+pool = mp.Pool(2)#mp.cpu_count())
+pool.map(replicateRun, [k for k in range(0,Nrange)])
+pool.close()
+
 t2 = time.time()
 
-print(t2 - t1)
+print('\n'+str(t2 - t1))
