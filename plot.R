@@ -68,7 +68,7 @@ crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 test <- as.data.frame(rasterToPoints(r))
 
-dat <- read.csv('grid_0000.csv',header=T,row.names=1)
+dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 
 datpa <- decostand(dat[,3:ncol(dat)],method='pa')
 count <- rowSums(datpa) 

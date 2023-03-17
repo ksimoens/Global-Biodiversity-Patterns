@@ -9,8 +9,9 @@ Pdisp = 0.1
 Pspec = 0.1
 
 NicheWidth = 10
+HabSlope = 1
 
-TempTurnover = False
-TempSpeciation = False
-AreaHabitat = False
+TempTurnover = True
+TempSpeciation = True
+AreaHabitat = True
 TempNiches = False

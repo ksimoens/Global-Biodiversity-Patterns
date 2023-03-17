@@ -14,26 +14,24 @@ class Grid():
 
 		self.global_grid = []
 		
-		df_grid = pd.read_csv('land_all_data_inc_working.csv').iloc[:,[0,5,6]]
+		df_grid = pd.read_csv('simulation_grid.csv')
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
-				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,2],k) )
+				self.global_grid.append( Local(df_grid.loc[k, 'x'],df_grid.loc[k, 'y'],k,df_grid.loc[k, 'active'],df_grid.loc[k, 'upper'],df_grid.loc[k, 'lower'],df_grid.loc[k, 'left'],df_grid.loc[k, 'right'],df_grid.loc[k, 'upper_left'],df_grid.loc[k, 'upper_right'],df_grid.loc[k, 'lower_left'],df_grid.loc[k, 'lower_right'],df_grid.loc[k, 'temp'],df_grid.loc[k, 'prec']) )
 				k += 1
 
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
-		self.lat_max = df_grid['Y_COORD'].abs().max()
+		self.temp_min = df_grid.loc[:,'temp'].abs().max()
 
 	def fillGrid(self):
 		
 		for loc in self.global_grid:
-			loc.fillLocal()
-		#self.Nspec = Nspec
-		#self.species = np.arange(0,Nspec)
-		#self.MaxSpec = np.max(self.species)
-
+			if(loc.active == 1):
+				loc.fillLocal()
+		
 	def updateSpecies(self):
 
 		pop_list = np.array([])
@@ -69,7 +67,7 @@ class Grid():
 
 		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
 		darray = np.concatenate( (darray,spec_list) ,axis=1)
-		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in self.species] 		
+		names_out = ['x','y'] + ['spec_' + str(int(ID)) for ID in self.species] 		
 		df_out = pd.DataFrame(data=darray, columns=names_out)
 		
 		df_out.to_csv('Output/grid_' + str(int(step)).zfill(4) + '.csv')
@@ -78,94 +76,69 @@ class Grid():
 
 		neighbours = np.array([])
 
-		# 1
-		# | - - . - - |
-		# | x - . - o |
-		# | - - . - - |
-		if((index+1) % Nlon == 0):
-			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
+		up = self.global_grid[index].upper
+		low = self.global_grid[index].lower
+		lef = self.global_grid[index].left
+		rig = self.global_grid[index].right
+		up_lef = self.global_grid[index].upper_left
+		up_rig = self.global_grid[index].upper_right
+		low_lef = self.global_grid[index].lower_left
+		low_rig = self.global_grid[index].lower_right
+
 		# - - -
 		# - o x
 		# - - -
-		else:
+		if(rig == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
-		# 2
-		# | - - . - - |
-		# | o - . - x |
-		# | - - . - - |
-		if((index) % Nlon == 0):
-			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
 		# - - -
 		# x o -
 		# - - -
-		else:
+		if(lef == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
 
-		if(index >= Nlon):
-			# 3
-			# - x -
-			# - o -
-			# - - -
+		
+		# 3
+		# - x -
+		# - o -
+		# - - -
+		if(up == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon].populations))
 			
-			# 4
-			# | x - . - - |
-			# | - - . - o |
-			# | - - . - - |
-			if((index+1) % Nlon == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-Nlon+1].populations))
-			# - - x
-			# - o -
-			# - - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
+		# - - x
+		# - o -
+		# - - -
+		if(up_rig == 1):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
 
-			# 5
-			# | - - . - x |
-			# | o - . - - |
-			# | - - . - - |
-			if((index) % 45 == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-			# x - -
-			# - o -
-			# - - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
+		# x - -
+		# - o -
+		# - - -
+		if(up_lef == 1):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
 	#	else: nothing
 			# _ _ _
 			# - o -
 			# - - -
 
-		if(index < len(self.global_grid)-Nlon):
-			# 6
-			# - - -
-			# - o -
-			# - x -
+	
+		# 6
+		# - - -
+		# - o -
+		# - x -
+		if(low == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon].populations))
 
-			# 7
-			# | - - . - - |
-			# | - - . - o |
-			# | x - . - - |
-			if((index+1) % Nlon == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
-			# - - -
-			# - o -
-			# - - x
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
+		# - - -
+		# - o -
+		# - - x
+		if(low_rig == 1):
+			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
 
-			# 8
-			# | - - . - - |
-			# | o - . - - |
-			# | - - . - x |
-			if((index) % 45 == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+Nlon-1].populations))
-			# - - - 
-			# - o -
-			# x - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
+		# - - - 
+		# - o -
+		# x - -
+		if(low_lef == 1):
+			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
 			
 	#	else: nothing
 			# - - -
