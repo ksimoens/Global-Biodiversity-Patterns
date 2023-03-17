@@ -277,18 +277,10 @@ def replicateRun(k):
 
 t1 = time.time()
 
-Nrange = 1
-
-replicateRun(1)
-
-'''
-
-pool = mp.Pool(1)#mp.cpu_count())
-pool.map(replicateRun, [k for k in range(0,Nrange)])
+pool = mp.Pool(NCPU)
+pool.map(replicateRun, [k for k in range(0,Nrep)])
 pool.close()
 
 t2 = time.time()
 
 print('\n'+str(t2 - t1))
-
-'''

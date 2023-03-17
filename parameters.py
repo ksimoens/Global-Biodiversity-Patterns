@@ -11,6 +11,9 @@ Pspec = 0.1
 NicheWidth = 10
 HabSlope = 1
 
+NCPU = 2
+Nrep = 100
+
 TempTurnover = True
 TempSpeciation = True
 AreaHabitat = True
