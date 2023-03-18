@@ -20,5 +20,9 @@ class Local():
 	def fillLocal(self):
 
 		for i in range(0,self.Nloc_i):
-			self.populations.append( Population(self.index,i) )
+			if(TempNiches):
+				T = 303.15 - (1/3)*np.absolute(self.lat)
+				self.populations.append( Population(self.index,i,T - NicheWidth, T + NicheWidth) )
+			else:
+				self.populations.append( Population(self.index,i) )
 
