@@ -41,7 +41,7 @@ os.mkdir("Output")
 def replicateRun(k):
 
 	print("---------------------------------------------")
-	print("SIMULATION RUN " + str(k) + " of " + str(Nrange))
+	print("SIMULATION RUN " + str(k) + " of " + str(Nrep))
 	print("---------------------------------------------")
 
 	g = Grid()

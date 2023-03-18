@@ -24,7 +24,6 @@ class Local():
 		if(AreaHabitat):
 			if(self.active == 1):
 				self.Nloc_i = int((HabSlope-1)*Nloc*self.habit - Nloc*(HabSlope-2))
-				print((HabSlope-1)*Nloc*self.habit - Nloc*(HabSlope-2))
 			else:
 				self.Nloc_i = float('nan')
 		else:
