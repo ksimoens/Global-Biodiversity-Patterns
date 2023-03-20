@@ -24,7 +24,7 @@ class Grid():
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
-		self.temp_min = df_grid.loc[:,'temp'].abs().max()
+		self.temp_min = df_grid.loc[:,'temp'].abs().min()
 
 	def fillGrid(self):
 		

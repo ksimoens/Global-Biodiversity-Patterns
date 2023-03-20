@@ -135,7 +135,6 @@ def replicateRun(k):
 					T = g.global_grid[tree['glob'].iloc[r]].temp
 					temp_min_new = min(temp_min_new,T)
 					temp_max_new = max(temp_max_new,T)
-
 					if(rSpec < Pspec_i):
 						# speciation
 						temp_min_final = temp_min_new
@@ -224,7 +223,7 @@ def replicateRun(k):
 					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
 					tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
 					if(TempTurnover):
-						T = g.global_grid[new_pop.glob_index].lat
+						T = g.global_grid[new_pop.glob_index].temp
 						tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
 
 			glob_list = copy.deepcopy(IDlist['glob'])
