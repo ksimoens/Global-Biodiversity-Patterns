@@ -4,6 +4,7 @@ from Grid import*
 import numpy as np
 import pandas as pd
 import random
+random.seed(10)
 import copy
 import time
 
@@ -40,7 +41,7 @@ os.mkdir("Output")
 
 t1 = time.time()
 
-Nrange = 20
+Nrange = 1
 
 for k in range(0,Nrange):
 
@@ -360,38 +361,54 @@ for k in range(0,Nrange):
 
 	#print(IDlist)
 
+	if(not SpeciesInformation):
+		diver_array = np.zeros(len(g.global_grid))
 
 	c = 0
 	for i in range(0,len(g.global_grid)):
+		if(not SpeciesInformation):
+			spec_sublist = np.zeros(len(g.global_grid[i].populations))
 		for j in range(0,len(g.global_grid[i].populations)):
 			g.global_grid[i].populations[j].species = IDlist['species'][c]
+			if(not SpeciesInformation):
+				spec_sublist[j] = IDlist['species'][c]
 			c += 1
+		if(not SpeciesInformation):
+			diver_array[i] = len(np.unique(spec_sublist))
 
 	lon_list = np.zeros(len(g.global_grid))
 	lat_list = np.zeros(len(g.global_grid))
 
-	spec_array = np.zeros( (len(g.global_grid),len(spec_list)) )
+	if(SpeciesInformation):
+		spec_array = np.zeros( (len(g.global_grid),len(spec_list)) )
 
 	for i in range(0,len(lat_list)):
 		lon_list[i] = g.global_grid[i].lon
 		lat_list[i] = g.global_grid[i].lat
 
-		for j in range(0,len(spec_list)):
-			n = 0
-			for x in range(0,len(g.global_grid[i].populations)):
-				if(g.global_grid[i].populations[x].species == spec_list[j].order):
-					n += 1	
-			spec_array[i][j] = n
+		if(SpeciesInformation):
+			for j in range(0,len(spec_list)):
+				n = 0
+				for x in range(0,len(g.global_grid[i].populations)):
+					if(g.global_grid[i].populations[x].species == spec_list[j].order):
+						n += 1	
+				spec_array[i][j] = n
 
-	ID_list = np.zeros(len(spec_list))
-	for i in range(0,len(ID_list)):
-		ID_list[i] = spec_list[i].order
+	if(SpeciesInformation):
+		ID_list = np.zeros(len(spec_list))
+		for i in range(0,len(ID_list)):
+			ID_list[i] = spec_list[i].order
 
 
-	darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
-	darray = np.concatenate( (darray,spec_array) ,axis=1)
-	names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list] 		
-	df_out = pd.DataFrame(data=darray, columns=names_out)
+		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
+		darray = np.concatenate( (darray,spec_array) ,axis=1)
+		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list] 		
+		df_out = pd.DataFrame(data=darray, columns=names_out)
+	else:
+		darray = np.concatenate((lon_list,lat_list,diver_array)).reshape((-1, 3), order='F')
+		names_out = ['lon','lat','diversity']
+		df_out = pd.DataFrame(data=darray, columns=names_out)
+
 			
 	df_out.to_csv('Output/grid_' + str(int(k)).zfill(4) + '.csv')
 

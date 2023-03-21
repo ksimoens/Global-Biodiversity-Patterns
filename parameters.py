@@ -5,7 +5,7 @@ Nlat = 14
 
 Nloc = 16
 
-Pdisp = 1
+Pdisp = 0.1
 Pspec = 0.1
 
 NicheWidth = 5
@@ -14,3 +14,5 @@ TempTurnover = False
 TempSpeciation = False
 AreaHabitat = False
 TempNiches = True
+
+SpeciesInformation = False
