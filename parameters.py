@@ -18,3 +18,5 @@ TempTurnover = True
 TempSpeciation = True
 AreaHabitat = False
 TempNiches = False
+
+SpeciesInformation = False
