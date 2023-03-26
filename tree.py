@@ -205,6 +205,7 @@ def replicateRun(k):
 						print(str(IDlist['temp_min'].iloc[pop.glob_index*Nloc + pop.loc_index]),'\t',str(IDlist['temp_max'].iloc[pop.glob_index*Nloc + pop.loc_index]))
 					input()
 		else:
+			new_pop = disp_pool[rNew]
 			if(rSpec < Pspec_i):
 				# speciation
 				new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index)
@@ -214,7 +215,6 @@ def replicateRun(k):
 			else:
 				# dispersal
 				rNew = random.randint(0,len(disp_pool)-1)
-				new_pop = disp_pool[rNew]
 				if len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0:
 					# remove
 					tree = tree.drop(tree.index[r])
