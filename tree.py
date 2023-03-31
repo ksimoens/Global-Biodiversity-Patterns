@@ -7,6 +7,7 @@ import random
 random.seed(10)
 import copy
 import time
+import multiprocessing as mp
 
 class Species():
 
@@ -39,14 +40,10 @@ if(os.path.exists("Output")):
 	shutil.rmtree("Output")
 os.mkdir("Output")
 
-t1 = time.time()
-
-Nrange = 1
-
-for k in range(0,Nrange):
+def replicateRun(k):
 
 	print("---------------------------------------------")
-	print("SIMULATION RUN " + str(k) + " of " + str(Nrange))
+	print("SIMULATION RUN " + str(k) + " of " + str(Nrep-1))
 	print("---------------------------------------------")
 
 	g = Grid()
@@ -98,13 +95,14 @@ for k in range(0,Nrange):
 
 	count = 0
 
+	pid = os.getpid()
+	random.seed(pid*time.time())
 
-
-
+	tree_0 = len(str(len(tree)))
 
 	while(len(tree) > 1):
 
-		print("iteration:" + '\t' + str(count) + '\t' + str(len(tree)), end='\r')
+		print("iteration:" + '\t' + str(count).zfill(10) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 
@@ -411,6 +409,12 @@ for k in range(0,Nrange):
 
 			
 	df_out.to_csv('Output/grid_' + str(int(k)).zfill(4) + '.csv')
+
+t1 = time.time()
+
+pool = mp.Pool(NCPU)
+pool.map(replicateRun, [k for k in range(0,Nrep)])
+pool.close()
 
 t2 = time.time()
 
