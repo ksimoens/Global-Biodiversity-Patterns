@@ -1,7 +1,7 @@
 import numpy as np
 
-Nlon = 3
-Nlat = 3
+Nlon = 243
+Nlat = 243
 
 Nloc = 16
 
@@ -18,4 +18,4 @@ TempSpeciation = False
 AreaHabitat = False
 TempNiches = False
 
-SpeciesInformation = False
+SpeciesInformation = True

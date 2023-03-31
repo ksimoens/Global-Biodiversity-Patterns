@@ -102,7 +102,7 @@ def replicateRun(k):
 
 	while(len(tree) > 1):
 
-		print("iteration:" + '\t' + str(count).zfill(10) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
+		#print("iteration:" + '\t' + str(count).zfill(10) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 
@@ -318,23 +318,23 @@ def replicateRun(k):
 				'''
 		else:
 			if(rSpec < Pspec_i):
-				print('speciation')
-				print(len(spec_list))
+				#print('speciation')
+				#print(len(spec_list))
 				new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index)
 				spec_list.append(new_spec)
 				IDlist.loc[ (IDlist['glob']==old_pop.glob_index) & (IDlist['loc']==old_pop.loc_index) & (IDlist['species']==-1), 'species'] = new_spec.order
 				tree = tree.drop(tree.index[r])
 			else:
-				print('dispersal')
+				#print('dispersal')
 				rNew = random.randint(0,len(disp_pool)-1)
 				new_pop = disp_pool[rNew]
-				print('new')
-				print(str(new_pop.glob_index) + '\t' + str(new_pop.loc_index))
+				#print('new')
+				#print(str(new_pop.glob_index) + '\t' + str(new_pop.loc_index))
 				if len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0:
-					print('remove')
+					#print('remove')
 					tree = tree.drop(tree.index[r])
 				else:
-					print('change')
+					#print('change')
 					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
 					tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
 					if(TempTurnover):
