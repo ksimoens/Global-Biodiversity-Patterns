@@ -102,7 +102,7 @@ def replicateRun(k):
 
 	while(len(tree) > 1):
 
-		#print("iteration:" + '\t' + str(count).zfill(10) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
+		print("iteration:" + '\t' + str(count).zfill(10) + '\t' + str(len(tree)).zfill(tree_0), end='\r' )
 		r = selectCell(tree)
 		old_pop = g.global_grid[tree['glob'].iloc[r]].populations[tree['loc'].iloc[r]]
 
@@ -362,46 +362,23 @@ def replicateRun(k):
 	if(not SpeciesInformation):
 		diver_array = np.zeros(len(g.global_grid))
 
-	c = 0
-	for i in range(0,len(g.global_grid)):
-		if(not SpeciesInformation):
+		c = 0
+		for i in range(0,len(g.global_grid)):
 			spec_sublist = np.zeros(len(g.global_grid[i].populations))
-		for j in range(0,len(g.global_grid[i].populations)):
-			g.global_grid[i].populations[j].species = IDlist['species'][c]
-			if(not SpeciesInformation):
+			for j in range(0,len(g.global_grid[i].populations)):
 				spec_sublist[j] = IDlist['species'][c]
-			c += 1
-		if(not SpeciesInformation):
+				c += 1
 			diver_array[i] = len(np.unique(spec_sublist))
 
-	lon_list = np.zeros(len(g.global_grid))
-	lat_list = np.zeros(len(g.global_grid))
+		lon_list = np.zeros(len(g.global_grid))
+		lat_list = np.zeros(len(g.global_grid))
 
-	if(SpeciesInformation):
-		spec_array = np.zeros( (len(g.global_grid),len(spec_list)) )
+		for i in range(0,len(lat_list)):
+			lon_list[i] = g.global_grid[i].lon
+			lat_list[i] = g.global_grid[i].lat
 
-	for i in range(0,len(lat_list)):
-		lon_list[i] = g.global_grid[i].lon
-		lat_list[i] = g.global_grid[i].lat
-
-		if(SpeciesInformation):
-			for j in range(0,len(spec_list)):
-				n = 0
-				for x in range(0,len(g.global_grid[i].populations)):
-					if(g.global_grid[i].populations[x].species == spec_list[j].order):
-						n += 1	
-				spec_array[i][j] = n
-
-	if(SpeciesInformation):
-		ID_list = np.zeros(len(spec_list))
-		for i in range(0,len(ID_list)):
-			ID_list[i] = spec_list[i].order
-
-
-		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
-		darray = np.concatenate( (darray,spec_array) ,axis=1)
-		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in ID_list] 		
-		df_out = pd.DataFrame(data=darray, columns=names_out)
+	if(SpeciesInformation):	
+		df_out = IDlist['species']
 	else:
 		darray = np.concatenate((lon_list,lat_list,diver_array)).reshape((-1, 3), order='F')
 		names_out = ['lon','lat','diversity']

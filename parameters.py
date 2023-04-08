@@ -1,7 +1,7 @@
 import numpy as np
 
-Nlon = 243
-Nlat = 243
+Nlon = 20
+Nlat = 20
 
 Nloc = 16
 
@@ -10,8 +10,8 @@ Pspec = 0.01
 
 NicheWidth = 5
 
-Nrep = 4
-NCPU = 2
+Nrep = 1
+NCPU = 1
 
 TempTurnover = False
 TempSpeciation = False

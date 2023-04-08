@@ -44,7 +44,7 @@ p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-if(T){
+if(F){
 
 dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 datLatLon <- dat %>% select(c(1,2))
@@ -96,7 +96,7 @@ g %>% ggsave('raster.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-if(T){
+if(F){
 
 dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
 
@@ -162,5 +162,63 @@ p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab(p
 				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
 
 p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
+
+}
+
+getSpeciesTable <- function(Nlat,Nlon,Nloc){
+
+	files <- list.files(path="Output", pattern="*.csv", full.names=TRUE, recursive=FALSE)
+
+	for(file in files){
+
+		ind_list <- read.csv(file,header=FALSE,row.names=1)
+		if(nrow(ind_list) != Nlon*Nlat*Nloc){
+			print('Error: wrong dimensions (lat x lon x loc)')
+			stop()
+		}
+		file_number <- file %>% strsplit(.,split='')
+		file_number <- file_number[[1]][13:16] %>% paste(collapse='')
+		print(file_number)
+		names(ind_list) <- c('species')
+
+		lat_vector <- c()
+		for(i in 1:Nlat){
+			lat_vector <- c(lat_vector,rep(i,Nlon*Nloc))
+		}
+
+		lon_vector <- c()
+		for(i in 1:Nlat){
+			for(j in 1:Nlon){
+				lon_vector <- c(lon_vector,rep(j,Nloc))
+			}
+		}
+
+		ind_list <- ind_list %>% mutate(lat=lat_vector,lon=lon_vector)
+
+		spec_list <- sort(unique(ind_list$species))
+
+		df_out <- matrix(nrow=Nlon*Nlat,ncol=2+length(spec_list)) %>% as.data.frame()
+		names(df_out) <- c('lat','lon',spec_list)
+
+		for(i in 1:(Nlat*Nlon)){
+			df_species <- data.frame(species=spec_list,number=0)
+
+			ind_list_sub <- ind_list[((i-1)*16+1):(i*16),]
+
+			lat_sub <- ind_list_sub$lat[1]
+			lon_sub <- ind_list_sub$lon[1]
+
+			summ <- ind_list_sub %>% group_by(species) %>% summarise(number=length(species))
+
+			for(j in 1:nrow(summ)){
+				df_species$number[df_species$species == summ$species[j]] <- summ$number[j]
+			}
+
+			df_out[i,] <- t(c(lat_sub,lon_sub,df_species$number))
+
+		}
+
+		write.csv(df_out,paste0('Output/grid_spec_',file_number,'.csv'))
+	}
 
 }
