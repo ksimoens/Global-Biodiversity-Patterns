@@ -1,7 +1,7 @@
 import numpy as np
 
-Nlon = 20
-Nlat = 20
+Nlon = 10
+Nlat = 10
 
 Nloc = 16
 

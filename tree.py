@@ -94,6 +94,9 @@ def replicateRun(k):
 	#print(IDlist)
 
 	count = 0
+	count_coal = 0
+	count_spec = 0
+	count_migr = 0
 
 	pid = os.getpid()
 	random.seed(pid*time.time())
@@ -110,6 +113,7 @@ def replicateRun(k):
 		disp_pool = []
 		if rDisp < Pdisp:
 			disp_pool = g.getNeighbours(old_pop.glob_index)
+			count_migr += 1
 		else:
 			disp_pool = g.global_grid[old_pop.glob_index].populations
 			disp_pool = np.delete(disp_pool,old_pop.loc_index)
@@ -318,6 +322,8 @@ def replicateRun(k):
 				'''
 		else:
 			if(rSpec < Pspec_i):
+				count_spec += 1
+				count_coal += 1
 				#print('speciation')
 				#print(len(spec_list))
 				new_spec = Species(len(spec_list),old_pop.glob_index,old_pop.loc_index)
@@ -333,6 +339,7 @@ def replicateRun(k):
 				if len(tree[(tree['glob']==new_pop.glob_index) & (tree['loc']==new_pop.loc_index)]) != 0:
 					#print('remove')
 					tree = tree.drop(tree.index[r])
+					count_coal += 1
 				else:
 					#print('change')
 					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
@@ -378,7 +385,7 @@ def replicateRun(k):
 			lat_list[i] = g.global_grid[i].lat
 
 	if(SpeciesInformation):	
-		df_out = IDlist['species']
+		df_out = pd.DataFrame(data=IDlist['species'],columns=['species'])
 	else:
 		darray = np.concatenate((lon_list,lat_list,diver_array)).reshape((-1, 3), order='F')
 		names_out = ['lon','lat','diversity']
@@ -386,6 +393,13 @@ def replicateRun(k):
 
 			
 	df_out.to_csv('Output/grid_' + str(int(k)).zfill(4) + '.csv')
+
+	f = open("Output/count_" + str(int(k)).zfill(4) + ".txt", "x")
+	f.write('count' + '\t' + str(count) + '\n')
+	f.write('count_spec' + '\t' + str(count_spec) + '\n')
+	f.write('count_coal' + '\t' + str(count_coal) + '\n')
+	f.write('count_migr' + '\t' + str(count_migr) + '\n')
+	f.close()
 
 t1 = time.time()
 
