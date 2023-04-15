@@ -15,7 +15,7 @@ NCPU = 1
 
 TempTurnover = False
 TempSpeciation = False
-AreaHabitat = False
+AreaHabitat = True
 TempNiches = False
 
 SpeciesInformation = True

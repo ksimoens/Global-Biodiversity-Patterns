@@ -14,12 +14,12 @@ class Grid():
 
 		self.global_grid = []
 		
-		#df_grid = pd.read_csv('land_all_data_inc_working.csv').iloc[:,[0,5,6]]
+		df_grid = pd.read_csv('grid_test_scaling.csv',index_col=0)
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
-				#self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,2],k) )
-				self.global_grid.append( Local(i,j,k) )
+				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,0],k,df_grid.iloc[k,2]) )
+				#self.global_grid.append( Local(i,j,k) )
 				k += 1
 
 		self.Nspec = 0

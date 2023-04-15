@@ -6,13 +6,12 @@ from Population import*
 
 class Local():
 
-	def __init__(self,lon,lat,i):
+	def __init__(self,lon,lat,i,hab):
 		self.lon = lon
 		self.lat = lat
 		self.index = i
 		if(AreaHabitat):
-			factor = -4./90.*np.absolute(lat) + 5.
-			self.Nloc_i = int(factor*Nloc)
+			self.Nloc_i = int(hab*Nloc)
 		else:
 			self.Nloc_i = Nloc
 		self.populations = []
