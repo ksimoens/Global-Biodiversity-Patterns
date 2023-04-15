@@ -222,3 +222,47 @@ getSpeciesTable <- function(Nlat,Nlon,Nloc){
 	}
 
 }
+
+createGrid <- function(Nlon,Nlat,gradIn){
+	lon_list <- rep(1:Nlon,Nlat)
+	lat_list <- c()
+	for(i in 1:Nlat){
+		lat_list <- c(lat_list,rep(i,Nlon))
+	}
+
+	delta_grad <- (gradIn-1)/4
+
+	df_out <- data.frame(lat=lat_list,lon=lon_list,grad=NA)
+
+	for(i in 0:3){
+
+		grad_i <- gradIn - i*delta_grad
+		df_out$grad[abs(df_out$lon - (Nlon+1)/2) == i & abs(df_out$lat - (Nlat+1)/2) %in% 0:i] <- grad_i
+		df_out$grad[abs(df_out$lon - (Nlon+1)/2) %in% 0:i & abs(df_out$lat - (Nlat+1)/2) == i ] <- grad_i
+
+	}
+
+	df_out$grad[is.na(df_out$grad)] <- 1
+	
+
+	return(df_out)
+}
+
+if(F){
+
+gradIn <- 5
+Nlon <- 11
+Nlat <- 11
+
+df <- createGrid(Nlon,Nlat,gradIn)
+
+write.csv(df,'grid_test_scaling.csv')
+
+p <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=grad),color='black') + theme_bw() +
+		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='gradient',limits=c(0,gradIn)) +
+		scale_x_continuous(labels=1:Nlon,breaks=1:Nlon) + scale_y_continuous(labels=1:Nlat,breaks=1:Nlat) +
+		theme(axis.title=element_blank(), legend.title=element_text(size=10),panel.grid=element_blank())
+
+p %>% ggsave('grid_test_scaling.png',.,device='png',width=16,height=15,units='cm')
+
+}
