@@ -165,60 +165,39 @@ p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-getSpeciesTable <- function(Nlat,Nlon,Nloc){
+getSpeciesTable <- function(Nloc){
 
-	files <- list.files(path="Output", pattern="*.csv", full.names=TRUE, recursive=FALSE)
+	files <- list.files(path="Output", pattern="grid_*", full.names=TRUE, recursive=FALSE)
 
 	for(file in files){
 
-		ind_list <- read.csv(file,header=FALSE,row.names=1)
-		if(nrow(ind_list) != Nlon*Nlat*Nloc){
-			print('Error: wrong dimensions (lat x lon x loc)')
-			stop()
-		}
+		ind_list <- read.csv(file,header=TRUE,row.names=1)
+		grid_list <- read.csv('grid_test_scaling.csv',header=TRUE,row.names=1) %>% mutate(Nloc_i=floor(Nloc*grad))
+
 		file_number <- file %>% strsplit(.,split='')
 		file_number <- file_number[[1]][13:16] %>% paste(collapse='')
 		print(file_number)
-		names(ind_list) <- c('species')
-
-		lat_vector <- c()
-		for(i in 1:Nlat){
-			lat_vector <- c(lat_vector,rep(i,Nlon*Nloc))
-		}
-
-		lon_vector <- c()
-		for(i in 1:Nlat){
-			for(j in 1:Nlon){
-				lon_vector <- c(lon_vector,rep(j,Nloc))
-			}
-		}
-
-		ind_list <- ind_list %>% mutate(lat=lat_vector,lon=lon_vector)
 
 		spec_list <- sort(unique(ind_list$species))
 
-		df_out <- matrix(nrow=Nlon*Nlat,ncol=2+length(spec_list)) %>% as.data.frame()
-		names(df_out) <- c('lat','lon',spec_list)
+		df_out <- matrix(nrow=nrow(grid_list),ncol=2+length(spec_list)) %>% as.data.frame()
+		names(df_out) <- c('lon','lat',spec_list)
 
-		for(i in 1:(Nlat*Nlon)){
-			df_species <- data.frame(species=spec_list,number=0)
+		count <- 1
+		for(i in 1:nrow(grid_list)){
 
-			ind_list_sub <- ind_list[((i-1)*16+1):(i*16),]
-
-			lat_sub <- ind_list_sub$lat[1]
-			lon_sub <- ind_list_sub$lon[1]
-
-			summ <- ind_list_sub %>% group_by(species) %>% summarise(number=length(species))
-
-			for(j in 1:nrow(summ)){
-				df_species$number[df_species$species == summ$species[j]] <- summ$number[j]
+			ind_sub <- ind_list[count:(count+grid_list$Nloc_i[i]-1),] %>% as.data.frame() %>% rename(species='.')
+			ind_sub_sum <- ind_sub %>% group_by(species) %>% summarise(count=length(species))
+			spec_container <- data.frame(species=spec_list,count=0)
+			for(j in 1:nrow(ind_sub_sum)){
+				spec_container$count[spec_container$species==ind_sub_sum$species[j]] <- ind_sub_sum$count[j]
 			}
-
-			df_out[i,] <- t(c(lat_sub,lon_sub,df_species$number))
-
+			df_out[i,] <- c(grid_list$lon[i],grid_list$lat[i],spec_container$count) %>% t()
+			count <- count + grid_list$Nloc_i[i]
 		}
 
-		write.csv(df_out,paste0('Output/grid_spec_',file_number,'.csv'))
+
+		write.csv(df_out,paste0('Output/spec_',file_number,'.csv'))
 	}
 
 }
