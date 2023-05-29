@@ -146,77 +146,158 @@ class Grid():
 		# - - -
 		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-
-		if(index >= Nlon):
-			# 3
-			# - x -
-			# - o -
-			# - - -
+		# 3
+		# _____
+		# - o -
+		# - - -
+		# . . .
+		# - - -
+		# - x -
+		# _____
+		if(index < Nlon):
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon*Nlat-Nlon+index].populations))
+		# - x -
+		# - o -
+		# - - -
+		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon].populations))
-			
-			# 4
-			# | x - . - - |
-			# | - - . - o |
-			# | - - . - - |
-			if((index+1) % Nlon == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-Nlon+1].populations))
-			# - - x
-			# - o -
-			# - - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
 
-			# 5
-			# | - - . - x |
-			# | o - . - - |
-			# | - - . - - |
-			if((index) % 45 == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-			# x - -
-			# - o -
-			# - - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
-	#	else: nothing
-			# _ _ _
-			# - o -
-			# - - -
+		# 4
+		#  __________
+		# | - - . - o |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | x - . - - |
+		#  ___________
+		if(index < Nlon and (index+1) % Nlon == 0):	
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon*Nlat-Nlon].populations))
+		# | x - . - - |
+		# | - - . - o |
+		# | - - . - - |
+		elif(index >= Nlon and (index+1) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-Nlon+1].populations))
+		# _____
+		# - o -
+		# - - - 
+		# . . .
+		# - - - 
+		# - - x
+		# _____
+		elif(index < Nlon and (index+1) % Nlon > 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon*Nlat-Nlon+index+1].populations))
+		# - - x
+		# - o -
+		# - - -
+		else:
+			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
 
-		if(index < len(self.global_grid)-Nlon):
-			# 6
-			# - - -
-			# - o -
-			# - x -
+		# 5
+		#  ___________
+		# | o - . - - |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | - - . - x |
+		#  ___________
+		if(index < Nlon and (index) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon*Nlat-1].populations))
+
+		# | - - . - x |
+		# | o - . - - |
+		# | - - . - - |
+		elif(index >= Nlon and (index) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
+		# _____
+		# - o -
+		# - - -
+		# . . .
+		# - - -
+		# x - -
+		# _____
+		elif(index < Nlon and (index) % Nlon > 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon*Nlat-1-Nlon+index].populations))
+		# x - -
+		# - o -
+		# - - -
+		else:
+			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
+	
+		# 6
+		# _____
+		# - x -
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		if(index >= len(self.global_grid)-Nlon):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-(Nlon*Nlat-Nlon)].populations))
+		# - - -
+		# - o -
+		# - x -
+		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon].populations))
 
-			# 7
-			# | - - . - - |
-			# | - - . - o |
-			# | x - . - - |
-			if((index+1) % Nlon == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
-			# - - -
-			# - o -
-			# - - x
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
+		# 7
+		#  ___________
+		# | x - . - - |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | - - . - o |
+		#  ___________
+		if(index >= len(self.global_grid)-Nlon and (index+1) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index - (Nlon*Nlat-1)].populations))
+		# | - - . - - |
+		# | - - . - o |
+		# | x - . - - |
+		elif(index < len(self.global_grid)-Nlon and (index+1) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
+		# _____
+		# - - x
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		elif(index >= len(self.global_grid)-Nlon and (index+1) % Nlon > 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-(Nlon*Nlat-Nlon)+1].populations))
+		# - - -
+		# - o -
+		# - - x
+		else:
+			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
 
-			# 8
-			# | - - . - - |
-			# | o - . - - |
-			# | - - . - x |
-			if((index) % 45 == 0):
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+Nlon-1].populations))
-			# - - - 
-			# - o -
-			# x - -
-			else:
-				neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
-			
-	#	else: nothing
-			# - - -
-			# - o -
-			# _ _ _
+		# 8
+		#  ___________
+		# | - - . - x |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | o - . - - |
+		#  ___________
+		if(index >= len(self.global_grid)-Nlon and (index) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[Nlon - 1 - (index - (Nlon*Nlat-Nlon) )].populations))
+		# | - - . - - |
+		# | o - . - - |
+		# | - - . - x |
+		elif(index < len(self.global_grid)-Nlon and (index) % Nlon == 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+Nlon-1].populations))
+		# _____
+		# x - -
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		elif(index >= len(self.global_grid)-Nlon and (index) % Nlon > 0):
+			neighbours = np.concatenate((neighbours , self.global_grid[index-(Nlon*Nlat-Nlon)-1].populations))
+		# - - - 
+		# - o -
+		# x - -
+		else:
+			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
 
 		return(neighbours)
 
