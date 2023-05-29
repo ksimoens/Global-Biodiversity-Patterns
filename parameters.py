@@ -8,7 +8,7 @@ Nloc = 100
 Pdisp = 0.1
 Pspec = 0.001
 
-NPCU = 2
+NCPU = 2
 Nrep = 2
 runtime = 120
 

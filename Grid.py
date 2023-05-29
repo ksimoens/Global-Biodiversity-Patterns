@@ -4,6 +4,7 @@ import random
 import time
 import os
 import shutil
+import multiprocessing as mp
 
 from parameters import*
 from Local import*
@@ -87,7 +88,7 @@ class Grid():
 					self.species = np.append(self.species,i)
 
 		self.Nspec = len(self.species)
-		print('Number of active species: ',str(self.Nspec))
+		#print('Number of active species: ',str(self.Nspec))
 
 	def printGrid(self,step):
 
@@ -374,28 +375,42 @@ if(os.path.exists("Output")):
 	shutil.rmtree("Output")
 os.mkdir("Output")
 
-g = Grid()
-g.fillGrid(1)
-g.adjustProbabilities()
+def replicateRun(k):
+
+	print("---------------------------------------------")
+	print("SIMULATION RUN " + str(k) + " of " + str(Nrep-1))
+	print("---------------------------------------------")
+
+	g = Grid()
+	g.fillGrid(1)
+	g.adjustProbabilities()
+
+	pid = os.getpid()
+	random.seed(pid*time.time())
+
+	t1 = time.time()
+	i = 0
+	while(True):
+		g.turnover()
+
+		if(i%10000==0):
+			g.updateSpecies()
+
+		t2 = time.time()
+		if((t2-t1)/runtime > 5./6.):
+			g.updateSpecies()
+			g.printGrid(k)
+			break
+		i += 1
+		#g.printGrid(i/10000)
 
 t1 = time.time()
-i = 0
-while(True):
-	#print(i)
-	g.turnover()
 
-	if(i%10000==0):
-		g.updateSpecies()
+pool = mp.Pool(NCPU)
+pool.map(replicateRun, [k for k in range(0,Nrep)])
+pool.close()
 
-	t2 = time.time()
-	if((t2-t1)/runtime > 5./6.):
-		g.updateSpecies()
-		g.printGrid(0)
-		break
-	i += 1
-		#g.printGrid(i/10000)
 t2 = time.time()
-print(t2-t1)
 
-
+print(t2 - t1)
 
