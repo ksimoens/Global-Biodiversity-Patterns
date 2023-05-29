@@ -325,10 +325,10 @@ class Grid():
 
 		if(r < Pdisp):
 			disp_pool = self.getNeighbours(i)
-			print('dispersal')
+			#print('dispersal')
 		else:
 			disp_pool = self.global_grid[i].populations
-			print('local')
+			#print('local')
 
 		old = random.randint(0,self.global_grid[i].Nloc_i-1)
 
@@ -346,7 +346,7 @@ class Grid():
 				T = 303.15 - (1/3)*np.absolute(self.global_grid[i].lat)
 				self.species.append(Species(T,self.MaxSpec + 1))
 			self.MaxSpec += 1
-			print('speciation')
+			#print('speciation')
 		else:
 			valid = False
 			while(not valid):
@@ -379,13 +379,21 @@ g.fillGrid(1)
 g.adjustProbabilities()
 
 t1 = time.time()
-for i in range(0,5000001):
-	print(i)
+i = 0
+while(True):
+	#print(i)
 	g.turnover()
 
 	if(i%10000==0):
 		g.updateSpecies()
-		g.printGrid(i/10000)
+
+	t2 = time.time()
+	if((t2-t1)/runtime > 5./6.):
+		g.updateSpecies()
+		g.printGrid(0)
+		break
+	i += 1
+		#g.printGrid(i/10000)
 t2 = time.time()
 print(t2-t1)
 
