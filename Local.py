@@ -6,7 +6,7 @@ from Population import*
 
 class Local():
 
-	def __init__(self,lon,lat,i,hab):
+	def __init__(self,lon,lat,i,hab,temp=0):
 		self.lon = lon
 		self.lat = lat
 		self.index = i
@@ -14,6 +14,9 @@ class Local():
 			self.Nloc_i = int(hab*Nloc)
 		else:
 			self.Nloc_i = Nloc
+		if(TempTurnover or TempSpeciation):
+			self.temp = temp
+
 		self.populations = []
 
 	def fillLocal(self):

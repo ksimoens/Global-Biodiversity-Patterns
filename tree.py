@@ -29,7 +29,6 @@ def selectCell(t):
 			s += probs[i]
 			if(s > r):
 				index = i
-				print(i)
 				break
 	else:
 		index = random.randint(0,len(t)-1)
@@ -64,7 +63,7 @@ def replicateRun(k):
 			glob_index.append(i)
 			loc_index.append(j)
 			if(TempTurnover):	
-				T = 303.15 - (1/3)*np.absolute(g.global_grid[i].lat)
+				T = g.global_grid[i].temp
 				prob_list.append(np.exp(-0.65 / 8.617e-5 / T))
 			else:
 				prob_list.append(-1)
@@ -76,8 +75,7 @@ def replicateRun(k):
 	#prob_list = prob_list / np.sum(prob_list)
 
 	if(TempSpeciation):
-		temp_min = 303.15 - (1/3)*np.absolute(g.lat_max)
-		boltz_min = np.exp(-0.65 / 8.617e-5 / temp_min)
+		boltz_min = np.exp(-0.65 / 8.617e-5 / g.Tmin)
 
 	if(TempNiches):
 		tree = pd.DataFrame(data=np.vstack( (glob_index,loc_index,prob_list,temp_min_list,temp_max_list)).T,columns=['glob','loc','prob','temp_min','temp_max'])
@@ -345,7 +343,7 @@ def replicateRun(k):
 					tree.iloc[r,tree.columns.get_loc('glob')] = new_pop.glob_index
 					tree.iloc[r,tree.columns.get_loc('loc')] = new_pop.loc_index
 					if(TempTurnover):
-						T = 303.15 - (1/3)*np.absolute(g.global_grid[new_pop.glob_index].lat)
+						T = g.global_grid[new_pop.glob_index].temp
 						tree.iloc[r,tree.columns.get_loc('prob')] = np.exp(-0.65 / 8.617e-5 / T)
 
 				glob_list = copy.deepcopy(IDlist['glob'])

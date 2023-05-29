@@ -1,7 +1,7 @@
 import numpy as np
 
-Nlon = 10
-Nlat = 10
+Nlon = 11
+Nlat = 11
 
 Nloc = 16
 
@@ -13,9 +13,9 @@ NicheWidth = 5
 Nrep = 1
 NCPU = 1
 
-TempTurnover = False
-TempSpeciation = False
-AreaHabitat = True
+TempTurnover = True
+TempSpeciation = True
+AreaHabitat = False
 TempNiches = False
 
 SpeciesInformation = True

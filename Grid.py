@@ -18,14 +18,14 @@ class Grid():
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
-				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,0],k,df_grid.iloc[k,2]) )
+				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,0],k,df_grid.iloc[k,2],df_grid.iloc[k,3]) ) 
 				#self.global_grid.append( Local(i,j,k) )
 				k += 1
 
 		self.Nspec = 0
 		self.species = np.zeros(self.Nspec)
 		self.MaxSpec = 0
-		#self.lat_max = df_grid['Y_COORD'].abs().max()
+		self.Tmin = df_grid['temp'].min()
 
 	def fillGrid(self):
 		

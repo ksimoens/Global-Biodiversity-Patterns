@@ -165,14 +165,18 @@ p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
 
 }
 
-getSpeciesTable <- function(Nloc){
+getSpeciesTable <- function(Nloc,Area){
 
 	files <- list.files(path="Output", pattern="grid_*", full.names=TRUE, recursive=FALSE)
 
 	for(file in files){
 
 		ind_list <- read.csv(file,header=TRUE,row.names=1)
-		grid_list <- read.csv('grid_test_scaling.csv',header=TRUE,row.names=1) %>% mutate(Nloc_i=floor(Nloc*grad))
+		if(Area){
+			grid_list <- read.csv('grid_test_scaling.csv',header=TRUE,row.names=1) %>% mutate(Nloc_i=floor(Nloc*grad))
+		} else {
+			grid_list <- read.csv('grid_test_scaling.csv',header=TRUE,row.names=1) %>% mutate(Nloc_i=Nloc)
+		}
 
 		file_number <- file %>% strsplit(.,split='')
 		file_number <- file_number[[1]][13:16] %>% paste(collapse='')
@@ -202,7 +206,7 @@ getSpeciesTable <- function(Nloc){
 
 }
 
-createGrid <- function(Nlon,Nlat,gradIn){
+createGrid <- function(Nlon,Nlat,gradIn,gradTemp){
 	lon_list <- rep(1:Nlon,Nlat)
 	lat_list <- c()
 	for(i in 1:Nlat){
@@ -211,7 +215,7 @@ createGrid <- function(Nlon,Nlat,gradIn){
 
 	delta_grad <- (gradIn-1)/4
 
-	df_out <- data.frame(lat=lat_list,lon=lon_list,grad=NA)
+	df_out <- data.frame(lat=lat_list,lon=lon_list,grad=NA,temp=NA)
 
 	for(i in 0:3){
 
@@ -221,7 +225,12 @@ createGrid <- function(Nlon,Nlat,gradIn){
 
 	}
 
+	for(i in 1:Nlat){
+		df_out$temp[df_out$lat==i] <- gradTemp/(1-Nlat)*(i-Nlat)
+	}
+
 	df_out$grad[is.na(df_out$grad)] <- 1
+	df_out$temp <- df_out$temp + 273.15
 	
 
 	return(df_out)
@@ -239,23 +248,26 @@ createGridRandom <- function(Nlon,Nlat,gradIn){
 	return(df_out)
 }
 
-if(T){
+if(F){
 
 gradIn <- 5
+gradTemp <- 20
 Nlon <- 11
 Nlat <- 11
 
-set.seed(44)
+df <- createGrid(Nlon,Nlat,gradIn,gradTemp)
 
-df <- createGridRandom(Nlon,Nlat,gradIn)
+#set.seed(44)
 
-write.csv(df,'grid_test_scaling_rand.csv')
+#df <- createGridRandom(Nlon,Nlat,gradIn)
 
-p <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=grad),color='black') + theme_bw() +
-		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='gradient',limits=c(0,gradIn)) +
+write.csv(df,'grid_test_scaling.csv')
+
+p <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=temp),color='black') + theme_bw() +
+		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='temperature') +
 		scale_x_continuous(labels=1:Nlon,breaks=1:Nlon) + scale_y_continuous(labels=1:Nlat,breaks=1:Nlat) +
 		theme(axis.title=element_blank(), legend.title=element_text(size=10),panel.grid=element_blank())
 
-p %>% ggsave('grid_test_scaling_rand.png',.,device='png',width=16,height=15,units='cm')
+p %>% ggsave('grid_test_scaling_T.png',.,device='png',width=16,height=15,units='cm')
 
 }
