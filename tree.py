@@ -110,11 +110,24 @@ def replicateRun(k):
 		rDisp = random.uniform(0,1)
 		disp_pool = []
 		if rDisp < Pdisp:
-			disp_pool = g.getNeighbours(old_pop.glob_index)
-			count_migr += 1
+			if(NewMigration):
+				disp_pool = g.getAllPopulations()
+				remove_pool = g.getNeighbours(old_pop.glob_index)
+				remove_pool = np.concatenate((remove_pool,g.global_grid[old_pop.glob_index].populations))
+				for i in range(0,len(remove_pool)):
+					disp_pool = np.delete(disp_pool,np.where(disp_pool == remove_pool[i]))
+			else:
+				disp_pool = g.getNeighbours(old_pop.glob_index)
+				count_migr += 1
 		else:
-			disp_pool = g.global_grid[old_pop.glob_index].populations
-			disp_pool = np.delete(disp_pool,old_pop.loc_index)
+			if(NewMigration):
+				disp_pool = g.getNeighbours(old_pop.glob_index)
+				disp_pool = np.concatenate((disp_pool,g.global_grid[old_pop.glob_index].populations))
+				disp_pool = np.delete(disp_pool,np.where(disp_pool == old_pop))
+			else:
+				disp_pool = g.global_grid[old_pop.glob_index].populations
+				disp_pool = np.delete(disp_pool,old_pop.loc_index)
+		
 
 		if(TempSpeciation):
 			Pspec_i = Pspec * tree['prob'].iloc[r] / boltz_min

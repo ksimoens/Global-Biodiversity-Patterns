@@ -13,9 +13,11 @@ NicheWidth = 5
 Nrep = 1
 NCPU = 1
 
-TempTurnover = True
-TempSpeciation = True
-AreaHabitat = False
+TempTurnover = False
+TempSpeciation = False
+AreaHabitat = True
 TempNiches = False
+
+NewMigration = True
 
 SpeciesInformation = True

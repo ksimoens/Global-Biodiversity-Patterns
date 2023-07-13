@@ -256,6 +256,16 @@ class Grid():
 
 		return(neighbours)
 
+	def getAllPopulations(self):
+
+		all_pops = np.array([])
+
+		for i in range(0,len(self.global_grid)):
+			all_pops = np.concatenate((all_pops,self.global_grid[i].populations))
+
+		return(all_pops)
+
+
 	def selectCell(self):
 
 		i = random.randint(0,len(self.global_grid)-1)
