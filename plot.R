@@ -3,6 +3,7 @@ library(rgdal)
 library(raster)
 library(tidyverse)
 library(vegan)
+library(ggpubr)
 
 if(F){
 dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
@@ -248,7 +249,7 @@ createGridRandom <- function(Nlon,Nlat,gradIn){
 	return(df_out)
 }
 
-if(F){
+if(T){
 
 gradIn <- 5
 gradTemp <- 20
@@ -261,13 +262,20 @@ df <- createGrid(Nlon,Nlat,gradIn,gradTemp)
 
 #df <- createGridRandom(Nlon,Nlat,gradIn)
 
-write.csv(df,'grid_test_scaling.csv')
+#write.csv(df,'grid_test_scaling.csv')
 
-p <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=temp),color='black') + theme_bw() +
-		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='temperature') +
+p_hab <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=grad),color='black') + theme_bw() +
+		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='habitat area',limits=c(0,gradIn)) +
 		scale_x_continuous(labels=1:Nlon,breaks=1:Nlon) + scale_y_continuous(labels=1:Nlat,breaks=1:Nlat) +
-		theme(axis.title=element_blank(), legend.title=element_text(size=10),panel.grid=element_blank())
+		theme(axis.title=element_blank(), panel.grid=element_blank())
 
-p %>% ggsave('grid_test_scaling_T.png',.,device='png',width=16,height=15,units='cm')
+p_temp <- ggplot() + geom_tile(data=df,aes(x=lon,y=lat,fill=temp),color='black') + theme_bw() +
+		scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='temperature (K)') +
+		scale_x_continuous(labels=1:Nlon,breaks=1:Nlon) + scale_y_continuous(labels=1:Nlat,breaks=1:Nlat) +
+		theme(axis.title=element_blank(),panel.grid=element_blank())
+
+q <- ggarrange(p_hab,p_temp,ncol=2)
+
+q %>% ggsave('grid_test_scaling.png',.,device='png',width=24,height=10,units='cm',bg='white')
 
 }
