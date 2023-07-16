@@ -111,14 +111,10 @@ def replicateRun(k):
 		disp_pool = []
 		if rDisp < Pdisp:
 			if(NewMigration):
-				disp_pool = g.getAllPopulations()
-				remove_pool = g.getNeighbours(old_pop.glob_index)
-				remove_pool = np.concatenate((remove_pool,g.global_grid[old_pop.glob_index].populations))
-				for i in range(0,len(remove_pool)):
-					disp_pool = np.delete(disp_pool,np.where(disp_pool == remove_pool[i]))
+				disp_pool = g.getAllPopulations(old_pop.glob_index)
 			else:
 				disp_pool = g.getNeighbours(old_pop.glob_index)
-				count_migr += 1
+			count_migr += 1
 		else:
 			if(NewMigration):
 				disp_pool = g.getNeighbours(old_pop.glob_index)

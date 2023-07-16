@@ -256,12 +256,196 @@ class Grid():
 
 		return(neighbours)
 
-	def getAllPopulations(self):
+	def getNeighboursIndex(self,index):
 
+		neighbours = np.array([])
+
+		# 1
+		# | - - . - - |
+		# | x - . - o |
+		# | - - . - - |
+		if((index+1) % Nlon == 0):
+			neighbours = np.append(neighbours,index-Nlon+1)
+		# - - -
+		# - o x
+		# - - -
+		else:
+			neighbours = np.append(neighbours,index+1)
+		# 2
+		# | - - . - - |
+		# | o - . - x |
+		# | - - . - - |
+		if((index) % Nlon == 0):
+			neighbours = np.append(neighbours,index+Nlon-1)
+		# - - -
+		# x o -
+		# - - -
+		else:
+			neighbours = np.append(neighbours,index-1)
+		# 3
+		# _____
+		# - o -
+		# - - -
+		# . . .
+		# - - -
+		# - x -
+		# _____
+		if(index < Nlon):
+			neighbours = np.append(neighbours, Nlon*Nlat-Nlon+index)
+		# - x -
+		# - o -
+		# - - -
+		else:
+			neighbours = np.append(neighbours,index-Nlon)
+
+		# 4
+		#  __________
+		# | - - . - o |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | x - . - - |
+		#  ___________
+		if(index < Nlon and (index+1) % Nlon == 0):	
+			neighbours = np.append(neighbours,Nlon*Nlat-Nlon)
+		# | x - . - - |
+		# | - - . - o |
+		# | - - . - - |
+		elif(index >= Nlon and (index+1) % Nlon == 0):
+			neighbours = np.append(neighbours,index-Nlon-Nlon+1)
+		# _____
+		# - o -
+		# - - - 
+		# . . .
+		# - - - 
+		# - - x
+		# _____
+		elif(index < Nlon and (index+1) % Nlon > 0):
+			neighbours = np.append(neighbours,Nlon*Nlat-Nlon+index+1)
+		# - - x
+		# - o -
+		# - - -
+		else:
+			neighbours = np.append(neighbours,index-Nlon+1)
+
+		# 5
+		#  ___________
+		# | o - . - - |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | - - . - x |
+		#  ___________
+		if(index < Nlon and (index) % Nlon == 0):
+			neighbours = np.append(neighbours,Nlon*Nlat-1)
+		# | - - . - x |
+		# | o - . - - |
+		# | - - . - - |
+		elif(index >= Nlon and (index) % Nlon == 0):
+			neighbours = np.append(neighbours,index-1)
+		# _____
+		# - o -
+		# - - -
+		# . . .
+		# - - -
+		# x - -
+		# _____
+		elif(index < Nlon and (index) % Nlon > 0):
+			neighbours = np.append(neighbours,Nlon*Nlat-1-Nlon+index)
+		# x - -
+		# - o -
+		# - - -
+		else:
+			neighbours = np.append(neighbours,index-Nlon-1)
+	
+		# 6
+		# _____
+		# - x -
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		if(index >= len(self.global_grid)-Nlon):
+			neighbours = np.append(neighbours,index-(Nlon*Nlat-Nlon))
+		# - - -
+		# - o -
+		# - x -
+		else:
+			neighbours = np.append(neighbours,index+Nlon)
+
+		# 7
+		#  ___________
+		# | x - . - - |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | - - . - o |
+		#  ___________
+		if(index >= len(self.global_grid)-Nlon and (index+1) % Nlon == 0):
+			neighbours = np.append(neighbours,index - (Nlon*Nlat-1))
+		# | - - . - - |
+		# | - - . - o |
+		# | x - . - - |
+		elif(index < len(self.global_grid)-Nlon and (index+1) % Nlon == 0):
+			neighbours = np.append(neighbours,index+1)
+		# _____
+		# - - x
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		elif(index >= len(self.global_grid)-Nlon and (index+1) % Nlon > 0):
+			neighbours = np.append(neighbours,index-(Nlon*Nlat-Nlon)+1)
+		# - - -
+		# - o -
+		# - - x
+		else:
+			neighbours = np.append(neighbours,index+Nlon+1)
+
+		# 8
+		#  ___________
+		# | - - . - x |
+		# | - - . - - |
+		# | . . . . . |
+		# | - - . - - |
+		# | o - . - - |
+		#  ___________
+		if(index >= len(self.global_grid)-Nlon and (index) % Nlon == 0):
+			neighbours = np.append(neighbours,Nlon - 1 - (index - (Nlon*Nlat-Nlon) ))
+		# | - - . - - |
+		# | o - . - - |
+		# | - - . - x |
+		elif(index < len(self.global_grid)-Nlon and (index) % Nlon == 0):
+			neighbours = np.append(neighbours,index+Nlon+Nlon-1)
+		# _____
+		# x - -
+		# - - -
+		# . . .
+		# - - -
+		# - o -
+		# _____
+		elif(index >= len(self.global_grid)-Nlon and (index) % Nlon > 0):
+			neighbours = np.append(neighbours,index-(Nlon*Nlat-Nlon)-1)
+		# - - - 
+		# - o -
+		# x - -
+		else:
+			neighbours = np.append(neighbours,index+Nlon-1)
+
+		neighbours = neighbours.astype(int)
+
+		return(neighbours)
+
+	def getAllPopulations(self,index):
+
+		indices = np.append(self.getNeighboursIndex(index),index)
 		all_pops = np.array([])
 
 		for i in range(0,len(self.global_grid)):
-			all_pops = np.concatenate((all_pops,self.global_grid[i].populations))
+			if(i not in indices):
+				all_pops = np.concatenate((all_pops,self.global_grid[i].populations))
 
 		return(all_pops)
 

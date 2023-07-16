@@ -3,10 +3,10 @@ import numpy as np
 Nlon = 11
 Nlat = 11
 
-Nloc = 16
+Nloc = 160
 
 Pdisp = 0.1
-Pspec = 0.01
+Pspec = 0.001
 
 NicheWidth = 5
 
