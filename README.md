@@ -57,51 +57,68 @@ The project contains multiple branches. Only a few are fully commented. Other br
 
 The base code for the reconstructed Worm and Tittensor (2018) model.  
 The code only contains the purely neutral death, birth, migration and speciation mechanics.  
-The modules are fully commented, accompanied by a README file and easily executable.  
+The modules are fully commented, accompanied by a README file and are easily executable.  
 No simulation run is added due to the size of the files, but a simulation can be run by the user.
+
+#### dataRun
+
+The code for a simulation of the empirical grids: NABB and CPR.  
+The code shows the implementation of the additional physics, the coalescence algorithm and the parallelisation.  
+The modules are fully commented, accompanied by a README file and are easily executable.  
+An example of a simulation run is added in the OutputExample directory.  
+Additionally, a simulation can be run by the user.
 
 ### Unfinished branches
 
 ---
 
-## Instructions on the Master branch
+## Instructions on the dataRun branch
 
-This branch contains the code for the base model.  
+This branch contains the code for a simulation of the empirical grids (NABB and CPR).  
 The code is easily executable:  
 
 1. Download the files and put them in a local directory  
 2. Execute the 'runSimulation.sh' bash file: $ ./runSimulation.sh  
-The full run will take around 40 minutes.  
+The full run will take around 15 minutes.  
+!!! The code is parallelised and will use 4 computer cores. Check whether your computer can run this.  
 3. Change parameters in 'parameters.py' as you please.  
 However, there is no guarantee that all combinations of parameters will run equally efficiently.  
-4. Output is generated in the 'Output' directory; including some plots in the 'plots' subdirectory.
+4. Output is generated in the 'Output' directory; including some plots in the 'plots' subdirectory.  
+An example of simulation run output is given in the 'OutputExample' directory.
 
 ### Files
 
 - **\_\_pycache\_\_**: directory for the pycache files, which ensure communication between the different modules.  
 These files are not strictly necessary and will be generated automatically when running the code.
 
+- **GridFiles**: directory that contains the empirical simulation grids.  
+Created in: https://github.com/ksimoens/Thesis-Data-Analysis.git  
+Currently the files are:
+
+	- *CPR_grid_env_div_sim.csv*: Continuous Plankton Recorder
+
+	- *NABB_grid_env_div_sim.csv*: North American Breeding Birds
+
 - **Grid.py**: module that contains the 'Grid' class.  
 An object of the Grid class instantiates the simulation grid.  
 The class contains information on the grid geometry and size.  
 The grid also contains communities of populations.  
-The Grid class holds the method for a turnover, which is the working horse of the simulation.  
-A Grid object is therefore updated each turnover and can be printed out as simulation output.
 
 - **Local.py**: module that contains the 'Local' class.  
 An object of the Local class instantiates a local community of populations / a grid cell.  
-The Local object contains populations represented by integers, which indicate the species identity.
+The Local object contains a list of Population objects, representing local populations.  
+The Local object also holds information on the environmental variables and neighbourhood of local cells.
 
-- **land_all_data_inc_working.csv**: definition of the simulation grid by Worm and Tittensor (2018).  
-The file is mainly used for reading in the grid geometry including the cell coordinates.  
-For details on the data format, the user is referred to the authors of the data file.
+- **Population.py**: module that contains the 'Population' class.  
+A Population object remembers its position in the global grid and in the local community.  
+The Population object also holds the species identity of the population.
 
 - **main.py**: runs the actual simulation.  
 Execute this file to run a simulation.  
 
 - **parameters.py**: contains all relevant simulation parameters.  
 Grid parameters, turnover parameters and numerical parameters.  
-The parameters are written to a txt file after each simulation for future reference.
+The parameters are written to the PARAM_file.txt file after each simulation for future reference.
 
 - **plot.R**: R script to make some plots based on the model output.  
 The script automatically reads the model output.  
@@ -112,14 +129,31 @@ Execute this file or run main.py and plot.R manually.
 
 - **Output**: output format:  
 
-	- **grid_XXXX.csv**: csv file with a diversity matrix for the simulation grid.  
-	XXXX represents a unique identifier and can be the simulation time at which the grid was printed.  
+	- **grid_XXXX.csv**: csv file with a diversity matrix for the simulation grid if the abundances are written out.  
+	If the diversity matrix writing is not active, only a diversity column is written out.    
+	XXXX represents a unique identifier and represents the replicate number.  
 	Columns are:
 		- *lon*: longitudinal coordinate of the grid cell as defined by Worm and Tittensor (2018)  
 		- *lat*: latitudinal coordinate of the grid cell as defined by Worm and Tittensor (2018)  
+
+		If the diversity matrix is active:
 		- *$spec$*:  
 		All remaining columns represent a unique species.  
 		Column names are the unique simulation identifiers for the species.  
 		Values are the total number of entries of a particular species found in a particular grid cell.  
 
+		If the diversity matrix is not active:
+		- *diversity*: number of species in the local cell  
+		0-value = cell is not active
+
 	- **PARAM_file.txt**: a txt file with information on the simulation parameters.
+
+- **OutputExample**: example of a simulation run  
+The files contain the same information as described under the 'Output' directory.  
+Additionally, plots are added under the 'plots' directory:
+
+	- *residual_distribution.png*: statistical distribution of model residuals
+	- *residual_map.png*: spatial distribution of model residuals
+	- *scatter.png*: scatter plot with information on the linear regression between empirical data and simulation output  
+	- *simulation_mean.png*: map of the mean simulation results
+	- *simulation_sd.png*: map of the standard deviation of the simulation results
