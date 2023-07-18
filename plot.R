@@ -17,11 +17,7 @@ library(tidyverse)
 library(sf)
 sf_use_s2(FALSE)
 library(rnaturalearth)
-
 library(ggspatial)
-library(ggpubr)
-library(sp)
-library(raster)
 
 # ----------------------------------------------------------
 
