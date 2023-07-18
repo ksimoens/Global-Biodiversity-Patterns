@@ -1,81 +1,95 @@
-import numpy as np
-import pandas as pd
-import random
-import time
-import os
-import shutil
+# Master Thesis IMBRSea
+# The Physics of Biodiversity: 
+# exploring the dynamics behind spatial biodiversity patterns
+#
+# contact: kobe.simoens@imbrsea.eu
+# date: 01/08/2023
+#
+# Simulation of Mechanistic Model
+#####################################
+# SIMULATION GRID and related methods
+#####################################
+
+# ------------ IMPORT FROM OTHER FILES ---------------------
 
 from parameters import*
 from Local import*
 
+# ----------------------------------------------------------
+
+
+# ----------------- IMPORT MODULES -------------------------
+
+import numpy as np
+import pandas as pd
+import random
+import os
+import shutil
+
+# ----------------------------------------------------------
+
+
+# ---------------------- GRID CLASS ------------------------
 class Grid():
 
+	# define constructor	
 	def __init__(self):
 
+		# global grid = list of Local objects
+		# Local defined in Local.py
 		self.global_grid = []
 		
-		df_grid = pd.read_csv('simulation_grid.csv')
+		# import the constructed simulation grid
+		# constructed in https://github.com/ksimoens/Thesis-Data-Analysis.git
+		# GridFile defined in parameters.py
+		df_grid = pd.read_csv('GridFiles/' + GridFile)
+
+		# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		# extract/calculate the habitat area proxy
+		# for now this has to be done explicitly here
+		# a better solution is required
+		# AreaHabitat defined in parameters.py
+		if(AreaHabitat):
+			# example: combine forest biomass and altitudinal gradient and take 10 base logarithm
+			foreGrad = np.asarray(df_grid['fore']*df_grid['grad'])
+			foreGrad = foreGrad / np.nanmin(foreGrad) 
+			hab = np.log10(foreGrad) + 1.
+		else:
+			# just use an empty array if habitat area is not used
+			hab = np.empty(len(df_grid))
+		# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+		# add all relevant columns in order to define the simulation grid
+		# each Local object remembers all this information during the simulation
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
-				self.global_grid.append( Local(df_grid.loc[k, 'x'],df_grid.loc[k, 'y'],k,df_grid.loc[k, 'active'],df_grid.loc[k, 'upper'],df_grid.loc[k, 'lower'],df_grid.loc[k, 'left'],df_grid.loc[k, 'right'],df_grid.loc[k, 'upper_left'],df_grid.loc[k, 'upper_right'],df_grid.loc[k, 'lower_left'],df_grid.loc[k, 'lower_right'],df_grid.loc[k, 'temp'],df_grid.loc[k, 'prec']) )
+				self.global_grid.append( Local(df_grid.loc[k, 'x'],df_grid.loc[k, 'y'],k,df_grid.loc[k, 'active'],df_grid.loc[k, 'upper'],df_grid.loc[k, 'lower'],df_grid.loc[k, 'left'],df_grid.loc[k, 'right'],df_grid.loc[k, 'upper_left'],df_grid.loc[k, 'upper_right'],df_grid.loc[k, 'lower_left'],df_grid.loc[k, 'lower_right'],df_grid.loc[k, 'temp'],hab[k]) )
 				k += 1
 
-		self.Nspec = 0
-		self.species = np.zeros(self.Nspec)
-		self.MaxSpec = 0
+		# lowest temperature in the grid
 		self.temp_min = df_grid.loc[:,'temp'].abs().min()
 
+	# fill the grid befor the simulation
 	def fillGrid(self):
 		
+		# fill each Local object with populations
+		# fillLocal defined in Local.py
 		for loc in self.global_grid:
 			if(loc.active == 1):
 				loc.fillLocal()
-		
-	def updateSpecies(self):
 
-		pop_list = np.array([])
-		for cell in self.global_grid:
-			pop_list = np.concatenate((pop_list,cell.populations))
-
-		self.species = np.array([])
-		for i in range(0,self.MaxSpec+1):
-			n = np.count_nonzero(pop_list == i)
-			if(n != 0):
-				self.species = np.append(self.species,i)
-
-		self.Nspec = len(self.species)
-		print(self.species)
-
-	def printGrid(self,step):
-
-		lon_list = np.zeros(len(self.global_grid))
-		lat_list = np.zeros(len(self.global_grid))
-
-		spec_list = np.zeros( (len(self.global_grid),self.Nspec) )
-
-		lon = np.array([-1,0,1,-1,0,1,-1,0,1])
-		lat = np.array([1,1,1,0,0,0,-1,-1,-1])
-
-		for i in range(0,len(lat_list)):
-			lon_list[i] = lon[i]
-			lat_list[i] = lat[i]
-
-			for j in range(0,self.Nspec):
-				spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j])
-
-
-		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
-		darray = np.concatenate( (darray,spec_list) ,axis=1)
-		names_out = ['x','y'] + ['spec_' + str(int(ID)) for ID in self.species] 		
-		df_out = pd.DataFrame(data=darray, columns=names_out)
-		
-		df_out.to_csv('Output/grid_' + str(int(step)).zfill(4) + '.csv')
-
+	# get Moore neighbourhood of cell with index
+	# assumes hard longitudinal boundary conditions 
+	# assumes hard latitudinal boundary conditions
+	# returns list of Population objects 
+	# Nlon defined in parameters.py
 	def getNeighbours(self,index):
 
 		neighbours = np.array([])
 
+		# get the geometrical booleans 
+		# convey whether a neighbour is active
 		up = self.global_grid[index].upper
 		low = self.global_grid[index].lower
 		lef = self.global_grid[index].left
@@ -85,17 +99,19 @@ class Grid():
 		low_lef = self.global_grid[index].lower_left
 		low_rig = self.global_grid[index].lower_right
 
+		# 1
 		# - - -
 		# - o x
 		# - - -
 		if(rig == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
+
+		# 2
 		# - - -
 		# x o -
 		# - - -
 		if(lef == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
-
 		
 		# 3
 		# - x -
@@ -103,23 +119,20 @@ class Grid():
 		# - - -
 		if(up == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon].populations))
-			
+		
+		# 4	
 		# - - x
 		# - o -
 		# - - -
 		if(up_rig == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon+1].populations))
 
+		# 5	
 		# x - -
 		# - o -
 		# - - -
 		if(up_lef == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index-Nlon-1].populations))
-	#	else: nothing
-			# _ _ _
-			# - o -
-			# - - -
-
 	
 		# 6
 		# - - -
@@ -128,79 +141,19 @@ class Grid():
 		if(low == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon].populations))
 
+		# 7
 		# - - -
 		# - o -
 		# - - x
 		if(low_rig == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon+1].populations))
 
+		# 8
 		# - - - 
 		# - o -
 		# x - -
 		if(low_lef == 1):
 			neighbours = np.concatenate((neighbours , self.global_grid[index+Nlon-1].populations))
 			
-	#	else: nothing
-			# - - -
-			# - o -
-			# _ _ _
 
 		return(neighbours)
-
-	def selectCell(self):
-
-		i = random.randint(0,len(self.global_grid)-1)
-		return(i)
-
-	def turnover(self):
-
-		i = self.selectCell()
-
-		r = random.uniform(0,1)
-		disp_pool = np.array([])
-
-		if(r < Pdisp):
-			disp_pool = self.getNeighbours(i)
-			print('dispersal')
-		else:
-			disp_pool = self.global_grid[i].populations
-			print('local')
-
-		old = random.randint(0,len(self.global_grid[i].populations)-1)
-
-		s = random.uniform(0,1)
-
-		if(s < Pspec):
-			self.global_grid[i].populations[old] = self.MaxSpec + 1
-			self.MaxSpec += 1
-			print('speciation')
-		else:
-			new = random.randint(0,len(disp_pool)-1)
-			self.global_grid[i].populations[old] = disp_pool[new]
-
-
-'''
-	
-if(os.path.exists("Output")):
-	shutil.rmtree("Output")
-os.mkdir("Output")
-
-g = Grid()
-g.fillGrid(1)
-g.printGrid(0)
-
-
-t1 = time.time()
-for i in range(0,100001):
-	print(i)
-	g.turnover()
-
-	if(i%100==0):
-		g.updateSpecies()
-		g.printGrid(i/100)
-t2 = time.time()
-print(t2-t1)
-
-'''
-
-

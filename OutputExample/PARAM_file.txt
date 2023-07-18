@@ -1,0 +1,40 @@
+####################
+--DATA SIMULATION--
+####################
+18/07/2023 14:08:13
+####################
+
+Main grid characteristics:
+	- grid: CPR_grid_env_div_sim.csv
+	- hard longitudinal boundary conditions
+	- hard latitudinal boundary conditions
+
+####################
+
+Numerical specifications:
+
+	- Coalescence algorithm
+	- Parallel computing
+	- Number of computing cores: 4
+	- Number of replicate runs: 20
+
+####################
+
+Simulation parameters:
+
+Number of longitudinal cells: 45
+Number of latitudinal cells: 14
+Base number of local populations: 16
+Migration rate: 0.03162277660168379
+Base speciation rate: 0.1
+Temperature-dependent death rates: active
+Temperature-dependent speciation rates: active
+habitat area scaling: inactive
+temperature ranges of species: inactive
+print complete diversity matrix to output: inactive
+
+####################
+
+Total runtime: 0:13:51.164243
+
+####################

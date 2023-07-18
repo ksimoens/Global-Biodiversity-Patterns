@@ -1,166 +1,231 @@
-library(sp)
-library(rgdal)
-library(raster)
+# Master Thesis IMBRSea
+# The Physics of Biodiversity: 
+# exploring the dynamics behind spatial biodiversity patterns
+#
+# contact: kobe.simoens@imbrsea.eu
+# date: 01/08/2023
+#
+# Simulation of Mechanistic Model
+#####################################
+# PLOT simulation
+#####################################
+
+
+# --------------------- LOAD PACKAGES ----------------------
+
 library(tidyverse)
-library(vegan)
+library(sf)
+sf_use_s2(FALSE)
+library(rnaturalearth)
 
-if(F){
-dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
+library(ggspatial)
+library(ggpubr)
+library(sp)
+library(raster)
 
-datpa <- decostand(dat[,3:ncol(dat)],method='pa')
-count <- rowSums(datpa) 
-
-r <- raster(ncol=45,nrow=14,xmn=-180,xmx=180,ymn=-90,ymx=90)
-crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-
-test <- as.data.frame(rasterToPoints(r))
-test$z <- as.vector(count)
-
-coordinates(test) <- ~x+y
-proj4string(test)=CRS("+init=epsg:4326")
-
-gridded(test) <- TRUE
-
-r <- raster(test)
-plot(r)
+# ----------------------------------------------------------
 
 
-step_list <- rep(0,1001)
-total_list <- rep(0,1001)
+# ------------- CREATE PLOT DIRECTORY ----------------------
+# create 'plots' directory to put the plots in
 
-for(i in 0:1000){
+createDirectory <- function(){
 
-	dat <- read.csv(paste0('Output/grid_',sprintf("%04d", i),'.csv'),header=T,row.names=1)
-	step_list[i+1] <- i*50000
-	total_list[i+1] <- ncol(dat)-2
-}
-
-df_plot <- data.frame(time=step_list, div=total_list)
-
-p <- df_plot %>% ggplot() + geom_line(aes(x=time,y=div),linewidth=1) + theme_bw() +
-					xlab('turnover') + ylab('global diversity')
-
-p %>% ggsave('global_div.png',.,device='png',width=15,height=10,units='cm')
+	if(!file.exists('Output/plots')){
+		dir.create(path='Output/plots')
+	}
 
 }
 
-if(T){
+# ----------------------------------------------------------
 
-dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
-datLatLon <- dat %>% select(c(1,2))
-datPA <- dat %>% select(-c(1,2)) %>% decostand(.,method='pa') %>% mutate(total=rowSums(.)) %>% pull(total)
-datLatLon <- datLatLon %>% mutate(total=datPA) %>% group_by(lat) %>% summarise(aver=mean(total))
 
-print(datLatLon)
+# ------------------- READ REPLICATES ----------------------
+# read all the replicate runs in the output directory
 
-g <- datLatLon %>% ggplot() + geom_line(aes(x=lat,y=aver),linewidth=1) +  coord_flip() +
-					theme_bw() + labs(x = 'latitude (°)', y = 'mean local diversity') +
-					ylim(0,7) + scale_x_continuous(breaks = c(-90,-45,0,45,90), limits=c(-95,95))
+readReplicates <- function(){
 
-g %>% ggsave('timeseries.png',.,device='png',height=15,width=10,units='cm')
+	# get list of replicate files
+	files <- list.files(path='Output',pattern='*.csv',full.names=TRUE)
+	# create container for simulation output
+	replicateContainer <- matrix(ncol=4,nrow=0) %>% as.data.frame()
+	names(replicateContainer) <- c('lon','lat','div','rep')
+
+	for(i in 1:length(files)){
+		dat <- read.csv(files[i],header=TRUE,row.names=1)
+		# add replicate to the container
+		replicateContainer <- rbind(replicateContainer,dat %>% dplyr::mutate(rep=i))
+	}
+
+	# get the summary of replicates
+	df_sum <- replicateContainer %>% dplyr::group_by(lat,lon) %>% dplyr::summarise(simulation_mean=mean(diversity),simulation_sd=sd(diversity)) %>% 
+										dplyr::ungroup() %>% dplyr::mutate(simulation_mean=simulation_mean/max(simulation_mean,na.rm=TRUE))
+	# transform zeros to NA (inactive cells)
+	df_sum$simulation_mean[df_sum$simulation_mean==0] <- NA
+	df_sum$simulation_sd[df_sum$simulation_sd==0] <- NA
+
+	return(df_sum)
+	
+}
+
+# ----------------------------------------------------------
+
+
+# --------------- COMBINE SIMULATION WITH DATA -------------
+
+createPlotDF <- function(){
+
+	# get simulation grid file from simulation specifics file
+	PAR_file <- file('Output/PARAM_file.txt',open='r')
+	on.exit(close(PAR_file))
+	PAR_file_lines <- readLines(PAR_file)
+	grid_line <- PAR_file_lines[which(startsWith(PAR_file_lines,'\t- grid:'))]
+	grid_file <- str_split(grid_line,pattern=': ')[[1]][2]
+
+	dat_emp <- read.csv(paste0('GridFiles/',grid_file),header=TRUE,row.names=1) %>% 
+				dplyr::select(x,y,diversity)
+
+	# get simulation run
+	dat_sim <- readReplicates()
+
+	# combine empirical data with simulation output
+	dat_sim_emp <- dat_sim %>% dplyr::inner_join(.,dat_emp,by=c('lon'='x','lat'='y')) %>%
+					dplyr::mutate(residual=(simulation_mean - diversity))
+
+	return(dat_sim_emp)	
 
 }
 
-if(F){
+# ----------------------------------------------------------
 
-r <- raster(ncol=45,nrow=14,xmn=-180,xmx=180,ymn=-90,ymx=90)
-crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
-test <- as.data.frame(rasterToPoints(r))
+# --------------- CREATE BACKGROUND SHAPEFILES -------------
 
-dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
+getSHP <- function(switch){
 
-datpa <- decostand(dat[,3:ncol(dat)],method='pa')
-count <- rowSums(datpa) 
+	# Contiguous USA for NABB
+	if(switch=='NABB'){
 
-test <- as.data.frame(rasterToPoints(r))
-test$z <- as.vector(count)
-coordinates(test) <- ~x+y
-proj4string(test)=CRS("+init=epsg:4326")
+		# get contiguous USA shapefile
+		USA <- rnaturalearth::ne_countries(country='united states of america',scale='medium',returnclass='sf') %>% sf::st_geometry() %>%
+						sf::st_crop(xmin=-130,xmax=-50,ymin=20,ymax=55)
+		# transform to Albers projection (equal area)
+		shp <- USA %>% sf::st_transform(crs=5070)
 
-gridded(test) <- TRUE
+	} 
 
-r2 <- raster(test)
+	# North Atlantic for CPR
+	else if(switch=='CPR'){
 
-test_spdf <- as(r2, "SpatialPixelsDataFrame")
-test_df <- as.data.frame(test_spdf)
-colnames(test_df) <- c("value", "x", "y")
+		# define the Lambert Conformal Conic projection
+		crs_atl <- CRS('+proj=lcc +lon_0=-20 +lat_1=40 +lat_2=60')
 
-g <- test_df %>% ggplot() + geom_tile(aes(x=x,y=y,fill=value)) + theme_bw() + 
-		scale_x_continuous(breaks=seq(-180,180,45), limits=c(-185,180)) + scale_y_continuous(breaks=seq(-90,90,45),limits=c(-95,95)) +
-		labs(x='longitude',y='latitude') + 
-		scale_fill_viridis_c(name='local diversity',option='magma',breaks=seq(1,16,3)) + 
-		theme(panel.ontop=T,panel.background = element_rect(fill = NA))
+		ex <- sf::st_sf(geom=sf::st_sfc(sf::st_point(c(-2200000,5436156)),sf::st_point(c(-2200000,7500000)),
+										sf::st_point(c(1850000,5436156)),sf::st_point(c(1850000,7500000)))) %>% 
+								sf::st_bbox() %>% raster::extent()
 
-g %>% ggsave('raster.png',.,device='png',width=15,height=10,units='cm')
+		# create the simulation grid raster
+		r <- raster::raster(ncol=45,nrow=14,crs=crs_atl,ext=ex)
 
-}
+		# create land layer for plotting
+		shp_land <- rnaturalearth::ne_countries(scale='medium') %>% sf::st_as_sf() %>% sf::st_geometry() %>%
+						sf::st_crop(., sf::st_sf(geom=sf::st_sfc(sf::st_point(c(-65,33)),sf::st_point(c(-65,70)),
+											sf::st_point(c(20,33)),sf::st_point(c(20,70)))) %>% sf::st_bbox()) %>%
+						sf::st_transform(crs=crs_atl)
+		# crop land layer to raster size
+		shp <- shp_land %>% sf::st_crop(r) 
 
-if(T){
+	} else {
 
-dat <- read.csv('Output/grid_0000.csv',header=T,row.names=1)
+		print('switch unrecognised')
+		shp <- NULL
 
-dat <- dat %>% select(c(1,2,2711,floor((ncol(.)-2)/3),floor((ncol(.)-2)*2/3),ncol(.))) 
+	}
 
-r <- raster(ncol=45,nrow=14,xmn=-180,xmx=180,ymn=-90,ymx=90)
-crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-
-test_df <- data.frame(matrix(ncol=4,nrow=0))
-colnames(test_df) <- c('count','x','y','species')
-
-test <- as.data.frame(rasterToPoints(r))
-
-for(i in 3:ncol(dat)){
-
-	test <- as.data.frame(rasterToPoints(r))
-	test$count <- as.vector(dat[,i])
-	coordinates(test) <- ~x+y
-	proj4string(test)=CRS("+init=epsg:4326")
-
-	gridded(test) <- TRUE
-
-	r2 <- raster(test)
-
-	test_spdf <- as(r2, "SpatialPixelsDataFrame")
-	test_df_sub <- as.data.frame(test_spdf) %>% mutate(species=colnames(dat)[i])
-	colnames(test_df_sub) <- c('count','x','y','species')
-
-	test_df <- rbind(test_df,test_df_sub)
+	return(shp)
 
 }
 
-test_df$count[test_df$count==0] <- NA
+# ----------------------------------------------------------
 
-p <- test_df %>% ggplot() + geom_tile(aes(x=x,y=y,fill=count),col='black',linewidth=0.5) + facet_wrap(~species) + theme_bw() + 
-		scale_x_continuous(breaks=seq(-180,180,45), limits=c(-185,180)) + scale_y_continuous(breaks=seq(-90,90,45),limits=c(-95,95)) +
-		theme(panel.ontop=T,panel.background = element_rect(fill = NA),
-				panel.grid.major = element_line(color = "grey",linewidth = 0.75,linetype = 2)) + 
-		scale_fill_viridis_c(name='population count',na.value='white',breaks=seq(1,16,3), option='magma') + 
-		labs(x='longitude',y='latitude') 
 
-p %>% ggsave('grid_species.png',.,width=30,height=20,units='cm',device='png')
+# ---------------------- MAKE PLOTS ------------------------
+
+plotSimulation <- function(){
+
+	createDirectory()
+
+	# get the correct switch value
+	PAR_file <- file('Output/PARAM_file.txt',open='r')
+	on.exit(close(PAR_file))
+	PAR_file_lines <- readLines(PAR_file)
+	grid_line <- PAR_file_lines[which(startsWith(PAR_file_lines,'\t- grid:'))]
+	grid_file <- str_split(grid_line,pattern=': ')[[1]][2]
+	switch <- str_split(grid_file,pattern='_')[[1]][1]
+
+	# get the correct shapefile for background
+	shp <- getSHP(switch)
+
+	# get the plot dataframe
+	df_plot <- createPlotDF()
+
+	# get minimal value
+	MinVal <- min(c(df_plot$diversity,df_plot$simulation_mean),na.rm=TRUE)
+
+	# plot the simulation mean
+	p <- ggplot() + geom_sf(data=shp) + geom_tile(data=df_plot,aes(x=lon,y=lat,fill=simulation_mean),color='black') + theme_bw() +
+			scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='simulation mean',limits=c(MinVal,1)) +
+			ggspatial::annotation_north_arrow(location = "tr",which_north = "true", pad_x = unit(2.4, "cm"), pad_y = unit(0.2, "cm"),
+				style = north_arrow_fancy_orienteering,height = unit(1.5, "cm"), width = unit(1.5, "cm")) +
+			ggspatial::annotation_scale(location = "bl", width_hint=0.3, text_cex=0.6, pad_y=unit(0.08,'cm'), pad_x=unit(0.5,'cm')) +
+			theme(axis.title=element_blank(), legend.title=element_text(size=10))
+
+	p %>% ggsave('Output/plots/simulation_mean.png',.,device='png',width=20,height=12,units='cm')
+
+	# plot the simulation standard deviation
+	p <- ggplot() + geom_sf(data=shp) + geom_tile(data=df_plot,aes(x=lon,y=lat,fill=simulation_sd),color='black') + theme_bw() +
+			scale_fill_viridis_c(option='magma',na.value=rgb(1,1,1,0),alpha=0.65,name='simulation sd') +
+			ggspatial::annotation_north_arrow(location = "tr",which_north = "true", pad_x = unit(2.4, "cm"), pad_y = unit(0.2, "cm"),
+				style = north_arrow_fancy_orienteering,height = unit(1.5, "cm"), width = unit(1.5, "cm")) +
+			ggspatial::annotation_scale(location = "bl", width_hint=0.3, text_cex=0.6, pad_y=unit(0.08,'cm'), pad_x=unit(0.5,'cm')) +
+			theme(axis.title=element_blank(), legend.title=element_text(size=10))
+
+	p %>% ggsave('Output/plots/simulation_sd.png',.,device='png',width=20,height=12,units='cm')
+
+	# plot the simulation residuals map
+	p <- ggplot() + geom_sf(data=shp) + geom_tile(data=df_plot,aes(x=lon,y=lat,fill=residual),color='black') + theme_bw() +
+			scale_fill_gradient2(low=rgb(1,0,0,0.65),high=rgb(0,1,0,0.65),mid=rgb(1,1,1,0.65),
+									name='residuals',limits=c(-1,1),na.value=rgb(0.5,0.5,0.5,0.65)) +
+			ggspatial::annotation_north_arrow(location = "tr",which_north = "true", pad_x = unit(2.4, "cm"), pad_y = unit(0.2, "cm"),
+				style = north_arrow_fancy_orienteering,height = unit(1.5, "cm"), width = unit(1.5, "cm")) +
+			ggspatial::annotation_scale(location = "bl", width_hint=0.3, text_cex=0.6, pad_y=unit(0.08,'cm'), pad_x=unit(0.5,'cm')) +
+			theme(axis.title=element_blank(), legend.title=element_text(size=10))
+
+	p %>% ggsave('Output/plots/residual_map.png',.,device='png',width=20,height=12,units='cm')
+
+	# plot the simulation residual distribution
+	p <- df_plot %>% ggplot() + geom_histogram(aes(residual)) + theme_bw() 
+	p %>% ggsave('Output/plots/residual_distribution.png',.,device='png',width=10,height=10,units='cm')
+
+	# calculate the regression coefficients between simulation and empirical data
+	model <- lm(data=df_plot,simulation_mean~diversity)
+	coeff <- summary(model)$coefficients %>% as.data.frame() %>% dplyr::select(Estimate)
+	# calculate the Pearson correlation coefficient
+	correl <- cor.test(df_plot$diversity,df_plot$simulation_mean,method='pearson')$estimate %>% as.numeric()
+
+	# plot the scatter
+	p <- df_plot %>% ggplot() + geom_point(aes(x=diversity,y=simulation_mean),pch=19) + 
+						geom_abline(intercept=coeff[1,1], slope=coeff[2,1], color='red', linewidth=1) +
+						geom_abline(intercept=0,slope=1,linetype=2,linewidth=0.75) +
+						xlab('data') + ylab('simulation') +
+						theme_bw() + xlim(0,1) + ylim(0,1) +
+						labs(title=paste0('r = ',round(correl,4)))
+
+	p %>% ggsave('Output/plots/scatter.png',.,device='png',width=10,height=10,units='cm')
 
 }
 
-if(F){
+# ----------------------------------------------------------
 
-dat <- read.csv('grid_0000.csv',header=T,row.names=1) 
-
-dat_spec <- dat %>% select(-c(1,2))
-
-dat_spec.h <- dat_spec %>% decostand(.,method='hellinger')
-
-PCA <- rda(dat_spec.h)
-Evalues <- eigenvals(PCA) 
-lambda <- sprintf("%.2f",round(Evalues[1:2] / sum(Evalues) *100, 2))
-
-site.scores <- scores(PCA, scaling=1, display="sites")
-df_plot <- site.scores %>% as.data.frame() %>% mutate(lat = dat %>% pull(lat) %>% abs())
-
-p <- df_plot %>% ggplot() + geom_point(aes(x=PC1,y=PC2,col=lat),size=1) + xlab(paste0('PC1 (',lambda[1],' %)')) + ylab(paste0('PC2 (',lambda[2],' %)')) + 
-				theme_bw() + scale_colour_viridis_c(option='magma',name='latitude') + 
-				geom_hline(yintercept=0,linetype=2) + geom_vline(xintercept=0,linetype=2)
-
-p %>% ggsave('PCA_output.png',.,device='png',width=15,height=10,units='cm')
-
-}
+# make the plots
+plotSimulation()
