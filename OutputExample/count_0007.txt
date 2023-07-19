@@ -1,0 +1,4 @@
+count	12469
+count_spec	376
+count_coal	3279
+count_migr	1276

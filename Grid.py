@@ -1,80 +1,74 @@
-import numpy as np
-import pandas as pd
-import random
-import time
-import os
-import shutil
+# Master Thesis IMBRSea
+# The Physics of Biodiversity: 
+# exploring the dynamics behind spatial biodiversity patterns
+#
+# contact: kobe.simoens@imbrsea.eu
+# date: 01/08/2023
+#
+# Simulation of Mechanistic Model
+#####################################
+# SIMULATION GRID and related methods
+#####################################
+
+# ------------ IMPORT FROM OTHER FILES ---------------------
 
 from parameters import*
 from Local import*
 
+# ----------------------------------------------------------
+
+
+# ----------------- IMPORT MODULES -------------------------
+
+import numpy as np
+import pandas as pd
+import random
+import os
+import shutil
+
+# ----------------------------------------------------------
+
+
+# ---------------------- GRID CLASS ------------------------
 class Grid():
 
+	# define constructor	
 	def __init__(self):
 
+		# global grid = list of Local objects
+		# Local defined in Local.py
 		self.global_grid = []
 		
-		df_grid = pd.read_csv('grid_test_scaling.csv',index_col=0)
+		# import the constructed simulation grid
+		# constructed in plot.R
+		# GridFile defined in parameters.py		
+		df_grid = pd.read_csv('GridFiles/' + GridFile,index_col=0)
+
+		# add all relevant columns in order to define the simulation grid
+		# each Local object remembers all this information during the simulation
 		k = 0
 		for i in range(0,Nlon):
 			for j in range(0,Nlat):
 				self.global_grid.append( Local(df_grid.iloc[k,1],df_grid.iloc[k,0],k,df_grid.iloc[k,2],df_grid.iloc[k,3]) ) 
-				#self.global_grid.append( Local(i,j,k) )
 				k += 1
 
-		self.Nspec = 0
-		self.species = np.zeros(self.Nspec)
-		self.MaxSpec = 0
+		# lowest temperature in the grid
 		self.Tmin = df_grid['temp'].min()
 
+	# fill the grid befor the simulation
 	def fillGrid(self):
 		
+		# fill each Local object with populations
+		# fillLocal defined in Local.py
 		for loc in self.global_grid:
 			loc.fillLocal()
-		#self.Nspec = Nspec
-		#self.species = np.arange(0,Nspec)
-		#self.MaxSpec = np.max(self.species)
 
-	def updateSpecies(self):
-
-		pop_list = np.array([])
-		for cell in self.global_grid:
-			pop_list = np.concatenate((pop_list,cell.populations))
-
-		self.species = np.array([])
-		for i in range(0,self.MaxSpec+1):
-			n = np.count_nonzero(pop_list == i)
-			if(n != 0):
-				self.species = np.append(self.species,i)
-
-		self.Nspec = len(self.species)
-		print(self.species)
-
-	def printGrid(self,step):
-
-		lon_list = np.zeros(len(self.global_grid))
-		lat_list = np.zeros(len(self.global_grid))
-
-		spec_list = np.zeros( (len(self.global_grid),self.Nspec) )
-
-		lon = np.array([-1,0,1,-1,0,1,-1,0,1])
-		lat = np.array([1,1,1,0,0,0,-1,-1,-1])
-
-		for i in range(0,len(lat_list)):
-			lon_list[i] = lon[i]
-			lat_list[i] = lat[i]
-
-			for j in range(0,self.Nspec):
-				spec_list[i][j] = np.count_nonzero(self.global_grid[i].populations == self.species[j])
-
-
-		darray = np.concatenate((lon_list, lat_list)).reshape((-1, 2), order='F')
-		darray = np.concatenate( (darray,spec_list) ,axis=1)
-		names_out = ['lon','lat'] + ['spec_' + str(int(ID)) for ID in self.species] 		
-		df_out = pd.DataFrame(data=darray, columns=names_out)
-		
-		df_out.to_csv('Output/grid_' + str(int(step)).zfill(4) + '.csv')
-
+	
+	# get Moore neighbourhood of cell with index
+	# assumes periodical longitudinal boundary conditions 
+	# assumes periodical latitudinal boundary conditions
+	# returns list of Population objects 
+	# Nlon/Nlat defined in parameters.py
 	def getNeighbours(self,index):
 
 		neighbours = np.array([])
@@ -90,6 +84,7 @@ class Grid():
 		# - - -
 		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index+1].populations))
+
 		# 2
 		# | - - . - - |
 		# | o - . - x |
@@ -101,6 +96,7 @@ class Grid():
 		# - - -
 		else:
 			neighbours = np.concatenate((neighbours , self.global_grid[index-1].populations))
+
 		# 3
 		# _____
 		# - o -
@@ -256,6 +252,9 @@ class Grid():
 
 		return(neighbours)
 
+
+	# same as in getNeighbours, but now return a list of neighbour indices
+	# used in an alternative migration simulation
 	def getNeighboursIndex(self,index):
 
 		neighbours = np.array([])
@@ -271,6 +270,7 @@ class Grid():
 		# - - -
 		else:
 			neighbours = np.append(neighbours,index+1)
+
 		# 2
 		# | - - . - - |
 		# | o - . - x |
@@ -282,6 +282,7 @@ class Grid():
 		# - - -
 		else:
 			neighbours = np.append(neighbours,index-1)
+
 		# 3
 		# _____
 		# - o -
@@ -438,71 +439,17 @@ class Grid():
 
 		return(neighbours)
 
+	# return all populations outside the Moore neighbourhood of and index
+	# used in an alternative migration simulation 
 	def getAllPopulations(self,index):
 
+		# get the indices of the Moore neighbourhood
 		indices = np.append(self.getNeighboursIndex(index),index)
+		# container for all populations
 		all_pops = np.array([])
-
+		# add all populations that are not in the Moore neighbourhood
 		for i in range(0,len(self.global_grid)):
 			if(i not in indices):
 				all_pops = np.concatenate((all_pops,self.global_grid[i].populations))
 
 		return(all_pops)
-
-
-	def selectCell(self):
-
-		i = random.randint(0,len(self.global_grid)-1)
-		return(i)
-
-	def turnover(self):
-
-		i = self.selectCell()
-
-		r = random.uniform(0,1)
-		disp_pool = np.array([])
-
-		if(r < Pdisp):
-			disp_pool = self.getNeighbours(i)
-			print('dispersal')
-		else:
-			disp_pool = self.global_grid[i].populations
-			print('local')
-
-		old = random.randint(0,len(self.global_grid[i].populations)-1)
-
-		s = random.uniform(0,1)
-
-		if(s < Pspec):
-			self.global_grid[i].populations[old] = self.MaxSpec + 1
-			self.MaxSpec += 1
-			print('speciation')
-		else:
-			new = random.randint(0,len(disp_pool)-1)
-			self.global_grid[i].populations[old] = disp_pool[new]
-
-'''
-	
-if(os.path.exists("Output")):
-	shutil.rmtree("Output")
-os.mkdir("Output")
-
-g = Grid()
-g.fillGrid(1)
-g.printGrid(0)
-
-
-t1 = time.time()
-for i in range(0,100001):
-	print(i)
-	g.turnover()
-
-	if(i%100==0):
-		g.updateSpecies()
-		g.printGrid(i/100)
-t2 = time.time()
-print(t2-t1)
-
-'''
-
-

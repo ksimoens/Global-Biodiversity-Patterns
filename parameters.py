@@ -1,23 +1,122 @@
+# Master Thesis IMBRSea
+# The Physics of Biodiversity: 
+# exploring the dynamics behind spatial biodiversity patterns
+#
+# contact: kobe.simoens@imbrsea.eu
+# date: 01/08/2023
+#
+# Simulation of Mechanistic Model
+#####################################
+# PARAMETERS of the simulation
+#####################################
+
+
+# ----------------- IMPORT MODULES -------------------------
+
+import pandas as pd
 import numpy as np
+import datetime
 
-Nlon = 11
-Nlat = 11
+# ----------------------------------------------------------
 
-Nloc = 160
+# define the name of the simulation grid file
+# this file is located in the GridFiles directory
+GridFile = 'grid_test_scaling.csv'
 
+# number of cells
+# collected directly from the simulation grid file
+Nlon = len(np.unique(pd.read_csv('GridFiles/' + GridFile)['lon'])) # longitudinal
+Nlat = len(np.unique(pd.read_csv('GridFiles/' + GridFile)['lat'])) # latitudinal
+# number of populations in a grid cell
+Nloc = 16
+# migration rate
 Pdisp = 0.1
-Pspec = 0.001
+# speciation rate
+Pspec = 0.01
+# number of computer cores to use in parallelisation
+NCPU = 4
+# number of replicate runs to disperse over the computer cores
+Nrep = 20
 
-NicheWidth = 5
+# switches to implement the new physics
+# True = active
+# False = inactive
+TempTurnover = True # temperature-dependent death rates
+TempSpeciation = True # temperature-dependent speciation rates
+AreaHabitat = True # scaling of local number of populations with habitat area
 
-Nrep = 1
-NCPU = 1
+# attempt to reformulate migration
+# migration = disperser comes from all other populations than Moore neighbourhood
+# no migration = disperser comes from Moore neighbourhood
+NewMigration = False
 
-TempTurnover = False
-TempSpeciation = False
-AreaHabitat = True
-TempNiches = False
-
-NewMigration = True
-
+# print species information in the output
+# True = print full list of species identities of all populations
+# False = print only a local diversity column
 SpeciesInformation = True
+
+# ----------------------------------------------------------
+
+
+# print the simulation specifics
+def print_parameters(runtime):
+
+	with open('Output/PARAM_file.txt', 'w') as f:
+		f.write('####################\n')
+		f.write('--DATA SIMULATION--\n')
+		f.write('####################\n')
+		now = datetime.datetime.now()
+		f.write(now.strftime("%d/%m/%Y %H:%M:%S") + '\n')
+		f.write('####################\n')
+		f.write('\n')
+		f.write('Main grid characteristics:\n')
+		f.write('\t- grid: ' + GridFile + '\n')
+		f.write('\t- periodic longitudinal boundary conditions\n')
+		f.write('\t- periodic latitudinal boundary conditions\n')
+		f.write('\n')
+		f.write('####################\n')
+		f.write('\n')
+		f.write('Numerical specifications:\n')
+		f.write('\n')
+		f.write('\t- Coalescence algorithm\n')
+		f.write('\t- Parallel computing\n')
+		f.write('\t- Number of computing cores: ' + str(NCPU) + '\n')
+		f.write('\t- Number of replicate runs: ' + str(Nrep) + '\n')
+		f.write('\n')
+		f.write('####################\n')
+		f.write('\n')
+		f.write('Simulation parameters:\n')
+		f.write('\n')
+		f.write('Number of longitudinal cells: ' + str(Nlon) + '\n')
+		f.write('Number of latitudinal cells: ' + str(Nlat) + '\n')
+		f.write('Base number of local populations: ' + str(Nloc) + '\n')
+		f.write('Migration rate: ' + str(Pdisp) + '\n')
+		f.write('Base speciation rate: ' + str(Pspec) + '\n')
+		if(TempTurnover):
+			f.write('Temperature-dependent death rates: active\n')
+		else:
+			f.write('Temperature-dependent death rates: inactive\n')
+		if(TempSpeciation):
+			f.write('Temperature-dependent speciation rates: active\n')
+		else:
+			f.write('Temperature-dependent speciation rates: inactive\n')
+		if(AreaHabitat):
+			f.write('Habitat area scaling: active\n')
+		else:
+			f.write('Habitat area scaling: inactive\n')
+		if(SpeciesInformation):
+			f.write('Print complete diversity matrix to output: active\n')
+		else:
+			f.write('Print complete diversity matrix to output: inactive\n')
+		if(NewMigration):
+			f.write('Alternative migration mode: active\n')
+		else:
+			f.write('Alternative migration mode: inactive\n')
+		f.write('\n')
+		f.write('####################\n')
+		f.write('\n')
+		f.write('Total runtime: ' + str(datetime.timedelta(seconds=runtime)) + '\n')
+		f.write('\n')
+		f.write('####################\n')
+
+		f.close()

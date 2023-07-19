@@ -1,0 +1,40 @@
+####################
+--DATA SIMULATION--
+####################
+19/07/2023 11:34:58
+####################
+
+Main grid characteristics:
+	- grid: grid_test_scaling.csv
+	- periodic longitudinal boundary conditions
+	- periodic latitudinal boundary conditions
+
+####################
+
+Numerical specifications:
+
+	- Coalescence algorithm
+	- Parallel computing
+	- Number of computing cores: 4
+	- Number of replicate runs: 20
+
+####################
+
+Simulation parameters:
+
+Number of longitudinal cells: 11
+Number of latitudinal cells: 11
+Base number of local populations: 16
+Migration rate: 0.1
+Base speciation rate: 0.01
+Temperature-dependent death rates: active
+Temperature-dependent speciation rates: active
+Habitat area scaling: active
+Print complete diversity matrix to output: active
+Alternative migration mode: inactive
+
+####################
+
+Total runtime: 0:04:16.443300
+
+####################
