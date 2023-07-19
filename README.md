@@ -68,7 +68,64 @@ The modules are fully commented, accompanied by a README file and are easily exe
 An example of a simulation run is added in the OutputExample directory.  
 Additionally, a simulation can be run by the user.
 
+#### theoryScaling
+
+The code for a simulation of dummy grids for testing the Mechanistic Model.  
+The code shows the implementation of the additional physics, the coalescence algorithm and the parallelisation.  
+Additionally, the output modes are adapted, and extra plots are generated.  
+The modules are fully commented, accompanied by a README file and are easily executable.  
+An example of a simulation run is added in the 'OutputExample' directory.  
+Additionally, a simulation can be run by the user.
+
 ### Unfinished branches
+
+#### coalescence
+
+First implementation of the coalescence algorithm.  
+The code only contains the purely neutral death, birth, migration and speciation mechanics.  
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### coalescenceNewPhysics
+
+Implementation of the additional physics in the coalescence algorithm.  
+The code shows the implementation of: 
+
+- Temperature-dependent death rates  
+- Temperature-dependent speciation rates  
+- Habitat area scaling of the local number of populations  
+- Temperature ranges limiting migration 
+
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### newPhysics
+
+Implementation of the additional physics in a forward algorithm.  
+The code shows the implementation of: 
+
+- Temperature-dependent death rates  
+- Temperature-dependent speciation rates  
+- Habitat area scaling of the local number of populations  
+- Temperature ranges limiting migration  
+
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### parallelRun
+
+Implementation of the parallelisation of the coalescence algorithm.  
+The README file explains how to run a simulation although the code is not cleaned up.  
+
+#### theoryScalingForward
+
+Simulation of the dummy grid for testing the Mechanistic Model with a forward algorithm.  
+The code is used for comparison with the output on the 'theoryScaling' branch.  
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### voter
+
+Implementation of a Voter model in the same grid as the Worm and Tittensor (2018) model.  
+The Voter Model is an alternative neutral model.  
+The simulation is run with the coalescence algorithm.  
+The README file explains how to run a simulation although the code is not cleaned up. 
 
 ---
 
@@ -118,10 +175,11 @@ Execute this file to run a simulation.
 
 - **parameters.py**: contains all relevant simulation parameters.  
 Grid parameters, turnover parameters and numerical parameters.  
-The parameters are written to the PARAM_file.txt file after each simulation for future reference.
+The parameters are written to the 'PARAM_file.txt' file after each simulation for future reference.
 
 - **plot.R**: R script to make some plots based on the model output.  
 The script automatically reads the model output.  
+The plots are created in the 'plots' subdirectory of the 'Output' directory.  
 Some plot parameters might not be suited for other simulation parameter values.
 
 - **runSimulation.sh**: simple executable which runs the simulation and makes the plots.  
@@ -137,14 +195,14 @@ The code is not optimised and could be compartmentalised further.
 	If the diversity matrix writing is not active, only a diversity column is written out.    
 	XXXX represents a unique identifier and represents the replicate number.  
 	Columns are:
-		- *lon*: longitudinal coordinate of the grid cell as defined by Worm and Tittensor (2018)  
-		- *lat*: latitudinal coordinate of the grid cell as defined by Worm and Tittensor (2018)  
+		- *lon*: longitudinal coordinate of the grid cell as defined in the simulation grid  
+		- *lat*: latitudinal coordinate of the grid cell as defined in the simulation grid  
 
 		If the diversity matrix is active:
 		- *$spec$*:  
 		All remaining columns represent a unique species.  
 		Column names are the unique simulation identifiers for the species.  
-		Values are the total number of entries of a particular species found in a particular grid cell.  
+		Values are the total number of populations of a particular species found in a particular grid cell.  
 
 		If the diversity matrix is not active:
 		- *diversity*: number of species in the local cell  
@@ -154,7 +212,7 @@ The code is not optimised and could be compartmentalised further.
 
 - **OutputExample**: example of a simulation run  
 The files contain the same information as described under the 'Output' directory.  
-Additionally, plots are added under the 'plots' directory:
+Additionally, plots are added under the 'plots' subdirectory:
 
 	- *residual_distribution.png*: statistical distribution of model residuals
 	- *residual_map.png*: spatial distribution of model residuals
