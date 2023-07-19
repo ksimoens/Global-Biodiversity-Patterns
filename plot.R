@@ -17,7 +17,9 @@ library(tidyverse)
 library(sf)
 sf_use_s2(FALSE)
 library(rnaturalearth)
+library(sp)
 library(ggspatial)
+library(vegan)
 
 # ----------------------------------------------------------
 
@@ -45,12 +47,34 @@ readReplicates <- function(){
 	files <- list.files(path='Output',pattern='*.csv',full.names=TRUE)
 	# create container for simulation output
 	replicateContainer <- matrix(ncol=4,nrow=0) %>% as.data.frame()
-	names(replicateContainer) <- c('lon','lat','div','rep')
+	names(replicateContainer) <- c('lon','lat','diversity','rep')
+
+	# get diversity matrix output switch from simulation specifics file
+	PAR_file <- file('Output/PARAM_file.txt',open='r')
+	on.exit(close(PAR_file))
+	PAR_file_lines <- readLines(PAR_file)
+	spec_line <- PAR_file_lines[which(startsWith(PAR_file_lines,'Print complete diversity matrix to output'))]
+	spec <- str_split(spec_line,pattern=': ')[[1]][2]
+	if(spec == 'active'){
+		spec_switch <- TRUE
+	} else {
+		spec_switch <- FALSE
+	}
 
 	for(i in 1:length(files)){
 		dat <- read.csv(files[i],header=TRUE,row.names=1)
 		# add replicate to the container
-		replicateContainer <- rbind(replicateContainer,dat %>% dplyr::mutate(rep=i))
+		if(spec_switch){
+			# calculate diversity
+			dat <- dat %>% dplyr::mutate(diversity=dat[,-c(1,2)] %>% vegan::decostand(method='pa') %>% rowSums()) %>%
+							dplyr::select(c(lon,lat,diversity)) %>% dplyr::mutate(rep=i)
+
+			# add to container
+			replicateContainer <- rbind(replicateContainer,dat)
+
+		} else {
+			replicateContainer <- rbind(replicateContainer,dat %>% dplyr::mutate(rep=i))
+		}
 	}
 
 	# get the summary of replicates
