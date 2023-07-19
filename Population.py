@@ -11,6 +11,13 @@
 #####################################
 
 
+# ------------ IMPORT FROM OTHER FILES ---------------------
+
+from parameters import*
+
+# ----------------------------------------------------------
+
+
 # ----------------- IMPORT MODULES -------------------------
 
 import numpy as np
@@ -23,8 +30,12 @@ import numpy as np
 class Population():
 
 	# define constructor
-	def __init__(self,i_glo,i_loc):
+	def __init__(self,i_glo,i_loc,tmin=0,tmax=0):
 
 		self.glob_index = i_glo # index in global_grid (Grid)
 		self.loc_index = i_loc # index in the local cell (Local)
 		self.species = -1 # species identifier; unidentified = -1
+		# if temperature ranges are active (defined in parameters.py)
+		if(TempNiches):
+			self.T_min = tmin
+			self.T_max = tmax

@@ -60,4 +60,10 @@ class Local():
 	def fillLocal(self):
 
 		for i in range(0,self.Nloc_i):
-			self.populations.append( Population(self.index,i) )
+
+			# if temperature ranges are active (parameters.py)
+			if(TempNiches):
+				T = self.temp
+				self.populations.append( Population(self.index,i,T - NicheWidth, T + NicheWidth) )
+			else:
+				self.populations.append( Population(self.index,i) )

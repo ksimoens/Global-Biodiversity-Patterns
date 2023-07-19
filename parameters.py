@@ -107,21 +107,20 @@ def print_parameters(runtime):
 			f.write('Habitat area scaling: active\n')
 			f.write('Slope of habitat scaling relationship: ' + str(HabSlope) + '\n')
 		else:
-			f.write('habitat area scaling: inactive\n')
+			f.write('Habitat area scaling: inactive\n')
 		if(TempNiches):
-			f.write('temperature ranges of species: active\n')
+			f.write('Temperature ranges of species: active\n')
 		else:
-			f.write('temperature ranges of species: inactive\n')
+			f.write('Temperature ranges of species: inactive\n')
 		if(SpeciesInformation):
-			f.write('print complete diversity matrix to output: active\n')
+			f.write('Print complete diversity matrix to output: active\n')
 		else:
-			f.write('print complete diversity matrix to output: inactive\n')
+			f.write('Print complete diversity matrix to output: inactive\n')
 		f.write('\n')
 		f.write('####################\n')
 		f.write('\n')
 		f.write('Total runtime: ' + str(datetime.timedelta(seconds=runtime)) + '\n')
 		f.write('\n')
 		f.write('####################\n')
-		print(runtime)
 
 		f.close()
