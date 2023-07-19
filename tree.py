@@ -81,7 +81,7 @@ def selectCell(t):
 # --------------- COALESCENCE SIMULATION -------------------
 # the working horse of the simulation
 # runs the entire coalescence algorithm
-# very ugly; has to be rewritten and compartimentalised
+# very ugly; has to be rewritten and compartmentalised
 
 # requires a replicate identifier (k) as input 
 

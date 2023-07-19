@@ -38,7 +38,7 @@ NicheWidth = 10
 # slope of the linear relationship between the habitat area proxy and the local number of populations
 # if the habitat area proxy x 2 => local number of populations x HabSlope
 HabSlope = 2
-# number of computer cores to use in parallellisation
+# number of computer cores to use in parallelisation
 NCPU = 4
 # number of replicate runs to disperse over the computer cores
 Nrep = 20
