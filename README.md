@@ -48,7 +48,7 @@ Contact: derek.tittensor@dal.ca
 ## Instructions
 
 This GitHub repository contains all information on the simulations of the Mechanistic Model of Worm and Tittensor (2018).  
-The code is executable and detailed instructions on its use is available in the README files.  
+The code is executable, and detailed instructions on its use are available in the README files.  
 The project contains multiple branches. Only a few are fully commented. Other branches are unfinished attempts not relevant for the thesis results.  
 
 ### Finished branches
@@ -56,7 +56,7 @@ The project contains multiple branches. Only a few are fully commented. Other br
 #### master
 
 The base code for the reconstructed Worm and Tittensor (2018) model.  
-The code only contains the purely neutral death, birth, migration and speciation mechanics.  
+The code only contains the purely neutral death, birth, migration and speciation mechanics in a forward algorithm.  
 The modules are fully commented, accompanied by a README file and are easily executable.  
 No simulation run is added due to the size of the files, but a simulation can be run by the user.
 
@@ -65,7 +65,7 @@ No simulation run is added due to the size of the files, but a simulation can be
 The code for a simulation of the empirical grids: NABB and CPR.  
 The code shows the implementation of the additional physics, the coalescence algorithm and the parallelisation.  
 The modules are fully commented, accompanied by a README file and are easily executable.  
-An example of a simulation run is added in the OutputExample directory.  
+An example of a simulation run is added in the 'OutputExample' directory.  
 Additionally, a simulation can be run by the user.
 
 #### theoryScaling
@@ -74,10 +74,58 @@ The code for a simulation of dummy grids for testing the Mechanistic Model.
 The code shows the implementation of the additional physics, the coalescence algorithm and the parallelisation.  
 Additionally, the output modes are adapted, and extra plots are generated.  
 The modules are fully commented, accompanied by a README file and are easily executable.  
-An example of a simulation run is added in the OutputExample directory.  
+An example of a simulation run is added in the 'OutputExample' directory.  
 Additionally, a simulation can be run by the user.
 
 ### Unfinished branches
+
+#### coalescence
+
+First implementation of the coalescence algorithm.  
+The code only contains the purely neutral death, birth, migration and speciation mechanics.  
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### coalescenceNewPhysics
+
+Implementation of the additional physics in the coalescence algorithm.  
+The code shows the implementation of: 
+
+- Temperature-dependent death rates  
+- Temperature-dependent speciation rates  
+- Habitat area scaling of the local number of populations  
+- Temperature ranges limiting migration 
+
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### newPhysics
+
+Implementation of the additional physics in a forward algorithm.  
+The code shows the implementation of: 
+
+- Temperature-dependent death rates  
+- Temperature-dependent speciation rates  
+- Habitat area scaling of the local number of populations  
+- Temperature ranges limiting migration  
+
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### parallelRun
+
+Implementation of the parallelisation of the coalescence algorithm.  
+The README file explains how to run a simulation although the code is not cleaned up.  
+
+#### theoryScalingForward
+
+Simulation of the dummy grid for testing the Mechanistic Model with a forward algorithm.  
+The code is used for comparison with the output on the 'theoryScaling' branch.  
+The README file explains how to run a simulation although the code is not cleaned up.
+
+#### voter
+
+Implementation of a Voter model in the same grid as the Worm and Tittensor (2018) model.  
+The Voter Model is an alternative neutral model.  
+The simulation is run with the coalescence algorithm.  
+The README file explains how to run a simulation although the code is not cleaned up. 
 
 ---
 
@@ -119,7 +167,7 @@ Currently the files are:
 - **Grid.py**: module that contains the 'Grid' class.  
 An object of the Grid class instantiates the simulation grid.  
 The class contains information on the grid geometry and size.  
-The grid also contains communities of populations.  
+The grid also contains Local communities of populations.  
 
 - **Local.py**: module that contains the 'Local' class.  
 An object of the Local class instantiates a local community of populations / a grid cell.  
@@ -135,10 +183,11 @@ Execute this file to run a simulation.
 
 - **parameters.py**: contains all relevant simulation parameters.  
 Grid parameters, turnover parameters and numerical parameters.  
-The parameters are written to the PARAM_file.txt file after each simulation for future reference.
+The parameters are written to the 'PARAM_file.txt' file after each simulation for future reference.
 
 - **plot.R**: R script to make some plots based on the model output.  
 The script automatically reads the model output.  
+The plots are created in the 'plots' subdirectory of the 'Output' directory.  
 Some plot parameters might not be suited for other simulation parameter values.  
 The script also generates the dummy grids.  
 
@@ -192,7 +241,7 @@ Extra files are present:
 		- *$spec$*:  
 		All remaining columns represent a unique species.  
 		Column names are the unique simulation identifiers for the species.  
-		Values are the total number of entries of a particular species found in a particular grid cell. 
+		Values are the total number of populations of a particular species found in a particular grid cell. 
 
 	- Additionally, plots are added under the '**plots**' directory: 
 		- *PCF_reduced.png*: the empirical and fitted theoretical PCF  
