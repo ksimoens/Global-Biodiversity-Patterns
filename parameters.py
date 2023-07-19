@@ -73,6 +73,5 @@ def print_parameters(runtime):
 		f.write('Total runtime: ' + str(datetime.timedelta(seconds=runtime)) + '\n')
 		f.write('\n')
 		f.write('####################\n')
-		print(runtime)
 
 		f.close()
